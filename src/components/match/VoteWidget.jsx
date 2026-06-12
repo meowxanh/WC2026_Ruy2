@@ -27,7 +27,7 @@ export default function VoteWidget({ match }) {
   const pctB = getPercent("teamB");
 
   const handleVote = async (vote) => {
-    if (!user || isLocked || userVote || voting) return;
+    if (!user || isLocked || voting || vote === userVote) return;
     try {
       await castVote(vote, user.displayName, user.photoURL);
     } catch (error) {
@@ -39,14 +39,16 @@ export default function VoteWidget({ match }) {
     return <div className="vote-widget vote-widget--loading">Đang tải...</div>;
   }
 
+  const isDisabled = isLocked || voting || !user;
+
   return (
     <div className="vote-widget">
       {/* Vote buttons */}
       <div className="vote-buttons">
         <button
-          className={`vote-btn vote-btn--teamA ${userVote === "teamA" ? "vote-btn--selected" : ""} ${isLocked || (userVote && userVote !== "teamA") ? "vote-btn--disabled" : ""}`}
+          className={`vote-btn vote-btn--teamA ${userVote === "teamA" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
           onClick={() => handleVote("teamA")}
-          disabled={isLocked || !!userVote || voting || !user}
+          disabled={isDisabled}
           title={!user ? "Đăng nhập để bình chọn" : ""}
         >
           <span className="vote-btn-label">{match.teamA.name}</span>
@@ -54,9 +56,9 @@ export default function VoteWidget({ match }) {
         </button>
 
         <button
-          className={`vote-btn vote-btn--draw ${userVote === "draw" ? "vote-btn--selected" : ""} ${isLocked || (userVote && userVote !== "draw") ? "vote-btn--disabled" : ""}`}
+          className={`vote-btn vote-btn--draw ${userVote === "draw" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
           onClick={() => handleVote("draw")}
-          disabled={isLocked || !!userVote || voting || !user}
+          disabled={isDisabled}
           title={!user ? "Đăng nhập để bình chọn" : ""}
         >
           <span className="vote-btn-label">Hòa</span>
@@ -64,9 +66,9 @@ export default function VoteWidget({ match }) {
         </button>
 
         <button
-          className={`vote-btn vote-btn--teamB ${userVote === "teamB" ? "vote-btn--selected" : ""} ${isLocked || (userVote && userVote !== "teamB") ? "vote-btn--disabled" : ""}`}
+          className={`vote-btn vote-btn--teamB ${userVote === "teamB" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
           onClick={() => handleVote("teamB")}
-          disabled={isLocked || !!userVote || voting || !user}
+          disabled={isDisabled}
           title={!user ? "Đăng nhập để bình chọn" : ""}
         >
           <span className="vote-btn-label">{match.teamB.name}</span>

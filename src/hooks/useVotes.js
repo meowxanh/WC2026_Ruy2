@@ -19,6 +19,7 @@ import { db } from "../lib/firebase";
  */
 export function useVote(matchId, userId) {
   const [userVote, setUserVote] = useState(null); // "teamA" | "draw" | "teamB" | null
+  const [voteDocId, setVoteDocId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
 
@@ -26,6 +27,7 @@ export function useVote(matchId, userId) {
   useEffect(() => {
     if (!matchId || !userId) {
       setUserVote(null);
+      setVoteDocId(null);
       setLoading(false);
       return;
     }
@@ -40,11 +42,14 @@ export function useVote(matchId, userId) {
         const snapshot = await getDocs(q);
         if (!snapshot.empty) {
           setUserVote(snapshot.docs[0].data().vote);
+          setVoteDocId(snapshot.docs[0].id);
         } else {
           setUserVote(null);
+          setVoteDocId(null);
         }
       } catch {
         setUserVote(null);
+        setVoteDocId(null);
       }
       setLoading(false);
     };
@@ -55,12 +60,16 @@ export function useVote(matchId, userId) {
   // Thực hiện vote bằng Transaction
   const castVote = useCallback(
     async (vote, userName, userAvatar) => {
-      if (!userId || !matchId || userVote || voting) return;
+      if (!userId || !matchId || voting) return;
+      if (vote === userVote) return;
 
       setVoting(true);
       try {
         const matchRef = doc(db, "matches", matchId);
-        const voteRef = doc(collection(db, "votes"));
+        const isUpdate = !!voteDocId;
+        const voteRef = isUpdate
+          ? doc(db, "votes", voteDocId)
+          : doc(collection(db, "votes"));
 
         await runTransaction(db, async (transaction) => {
           const matchDoc = await transaction.get(matchRef);
@@ -69,29 +78,54 @@ export function useVote(matchId, userId) {
           }
 
           const matchData = matchDoc.data();
-          if (matchData.status !== "upcoming") {
-            throw new Error("Trận đấu đã bắt đầu, không thể bình chọn");
+          const isMatchLocked = (matchData.status !== "upcoming" || new Date() >= matchData.matchDate.toDate()) && !matchData.forceUnlocked;
+          if (isMatchLocked) {
+            throw new Error("Trận đấu đã bắt đầu, không thể bình chọn hoặc thay đổi");
           }
 
-          // Tạo vote document
-          transaction.set(voteRef, {
-            matchId,
-            userId,
-            userName: userName || "Ẩn danh",
-            userAvatar: userAvatar || null,
-            vote,
-            createdAt: serverTimestamp(),
-            isCorrect: null,
-          });
+          if (isUpdate) {
+            const voteDoc = await transaction.get(voteRef);
+            if (!voteDoc.exists()) {
+              throw new Error("Bình chọn không tồn tại");
+            }
+            const oldVote = voteDoc.data().vote;
+            if (oldVote === vote) return;
 
-          // Cập nhật counter trong match
-          transaction.update(matchRef, {
-            [`votes.${vote}`]: increment(1),
-            "votes.total": increment(1),
-          });
+            // Cập nhật vote document
+            transaction.update(voteRef, {
+              vote,
+              updatedAt: serverTimestamp(),
+            });
+
+            // Cập nhật counter trong match: trừ vote cũ, cộng vote mới
+            transaction.update(matchRef, {
+              [`votes.${oldVote}`]: increment(-1),
+              [`votes.${vote}`]: increment(1),
+            });
+          } else {
+            // Tạo mới vote document
+            transaction.set(voteRef, {
+              matchId,
+              userId,
+              userName: userName || "Ẩn danh",
+              userAvatar: userAvatar || null,
+              vote,
+              createdAt: serverTimestamp(),
+              isCorrect: null,
+            });
+
+            // Cập nhật counter trong match
+            transaction.update(matchRef, {
+              [`votes.${vote}`]: increment(1),
+              "votes.total": increment(1),
+            });
+          }
         });
 
         setUserVote(vote);
+        if (!isUpdate) {
+          setVoteDocId(voteRef.id);
+        }
       } catch (error) {
         console.error("Vote error:", error);
         throw error;
@@ -99,7 +133,7 @@ export function useVote(matchId, userId) {
         setVoting(false);
       }
     },
-    [matchId, userId, userVote, voting]
+    [matchId, userId, userVote, voteDocId, voting]
   );
 
   return { userVote, loading, voting, castVote };
