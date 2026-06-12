@@ -113,7 +113,7 @@ export const seedMatches = [
   {
     id: "B1",
     teamA: team(T.CAN), teamB: team(T.BIH),
-    group: "Bảng B", matchDate: new Date("2026-06-12T23:00:00+07:00"),
+    group: "Bảng B", matchDate: new Date("2026-06-13T02:00:00+07:00"),
     venue: "Toronto Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -131,7 +131,7 @@ export const seedMatches = [
   {
     id: "C1",
     teamA: team(T.HAI), teamB: team(T.SCO),
-    group: "Bảng C", matchDate: new Date("2026-06-13T23:00:00+07:00"),
+    group: "Bảng C", matchDate: new Date("2026-06-14T08:00:00+07:00"),
     venue: "Boston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -139,7 +139,7 @@ export const seedMatches = [
   {
     id: "D2",
     teamA: team(T.AUS), teamB: team(T.TUR),
-    group: "Bảng D", matchDate: new Date("2026-06-13T23:00:00+07:00"),
+    group: "Bảng D", matchDate: new Date("2026-06-14T11:00:00+07:00"),
     venue: "Vancouver Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -147,7 +147,7 @@ export const seedMatches = [
   {
     id: "C2",
     teamA: team(T.BRA), teamB: team(T.MAR),
-    group: "Bảng C", matchDate: new Date("2026-06-14T02:00:00+07:00"),
+    group: "Bảng C", matchDate: new Date("2026-06-14T05:00:00+07:00"),
     venue: "New York New Jersey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -155,7 +155,7 @@ export const seedMatches = [
   {
     id: "B2",
     teamA: team(T.QAT), teamB: team(T.SUI),
-    group: "Bảng B", matchDate: new Date("2026-06-14T05:00:00+07:00"),
+    group: "Bảng B", matchDate: new Date("2026-06-14T02:00:00+07:00"),
     venue: "San Francisco Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -165,7 +165,7 @@ export const seedMatches = [
   {
     id: "E1",
     teamA: team(T.CIV), teamB: team(T.ECU),
-    group: "Bảng E", matchDate: new Date("2026-06-14T23:00:00+07:00"),
+    group: "Bảng E", matchDate: new Date("2026-06-15T06:00:00+07:00"),
     venue: "Philadelphia Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -173,7 +173,7 @@ export const seedMatches = [
   {
     id: "E2",
     teamA: team(T.GER), teamB: team(T.CUR),
-    group: "Bảng E", matchDate: new Date("2026-06-15T02:00:00+07:00"),
+    group: "Bảng E", matchDate: new Date("2026-06-15T00:00:00+07:00"),
     venue: "Houston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -181,7 +181,7 @@ export const seedMatches = [
   {
     id: "F1",
     teamA: team(T.NED), teamB: team(T.JPN),
-    group: "Bảng F", matchDate: new Date("2026-06-15T02:00:00+07:00"),
+    group: "Bảng F", matchDate: new Date("2026-06-15T03:00:00+07:00"),
     venue: "Dallas Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -189,7 +189,7 @@ export const seedMatches = [
   {
     id: "F2",
     teamA: team(T.SWE), teamB: team(T.TUN),
-    group: "Bảng F", matchDate: new Date("2026-06-15T05:00:00+07:00"),
+    group: "Bảng F", matchDate: new Date("2026-06-15T09:00:00+07:00"),
     venue: "Monterrey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -199,7 +199,7 @@ export const seedMatches = [
   {
     id: "H1",
     teamA: team(T.KSA), teamB: team(T.URU),
-    group: "Bảng H", matchDate: new Date("2026-06-15T23:00:00+07:00"),
+    group: "Bảng H", matchDate: new Date("2026-06-16T05:00:00+07:00"),
     venue: "Miami Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -207,7 +207,7 @@ export const seedMatches = [
   {
     id: "H2",
     teamA: team(T.ESP), teamB: team(T.CPV),
-    group: "Bảng H", matchDate: new Date("2026-06-16T02:00:00+07:00"),
+    group: "Bảng H", matchDate: new Date("2026-06-15T23:00:00+07:00"),
     venue: "Atlanta Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -215,7 +215,7 @@ export const seedMatches = [
   {
     id: "G1",
     teamA: team(T.IRN), teamB: team(T.NZL),
-    group: "Bảng G", matchDate: new Date("2026-06-16T05:00:00+07:00"),
+    group: "Bảng G", matchDate: new Date("2026-06-16T08:00:00+07:00"),
     venue: "Los Angeles Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -223,7 +223,7 @@ export const seedMatches = [
   {
     id: "G2",
     teamA: team(T.BEL), teamB: team(T.EGY),
-    group: "Bảng G", matchDate: new Date("2026-06-16T08:00:00+07:00"),
+    group: "Bảng G", matchDate: new Date("2026-06-16T02:00:00+07:00"),
     venue: "Seattle Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -233,7 +233,7 @@ export const seedMatches = [
   {
     id: "I1",
     teamA: team(T.FRA), teamB: team(T.SEN),
-    group: "Bảng I", matchDate: new Date("2026-06-16T23:00:00+07:00"),
+    group: "Bảng I", matchDate: new Date("2026-06-17T02:00:00+07:00"),
     venue: "New York New Jersey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -241,7 +241,7 @@ export const seedMatches = [
   {
     id: "I2",
     teamA: team(T.IRQ), teamB: team(T.NOR),
-    group: "Bảng I", matchDate: new Date("2026-06-17T02:00:00+07:00"),
+    group: "Bảng I", matchDate: new Date("2026-06-17T05:00:00+07:00"),
     venue: "Boston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -249,7 +249,7 @@ export const seedMatches = [
   {
     id: "J1",
     teamA: team(T.ARG), teamB: team(T.ALG),
-    group: "Bảng J", matchDate: new Date("2026-06-17T05:00:00+07:00"),
+    group: "Bảng J", matchDate: new Date("2026-06-17T08:00:00+07:00"),
     venue: "Kansas City Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -257,7 +257,7 @@ export const seedMatches = [
   {
     id: "J2",
     teamA: team(T.AUT), teamB: team(T.JOR),
-    group: "Bảng J", matchDate: new Date("2026-06-17T05:00:00+07:00"),
+    group: "Bảng J", matchDate: new Date("2026-06-17T11:00:00+07:00"),
     venue: "San Francisco Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -267,7 +267,7 @@ export const seedMatches = [
   {
     id: "L1",
     teamA: team(T.GHA), teamB: team(T.PAN),
-    group: "Bảng L", matchDate: new Date("2026-06-17T23:00:00+07:00"),
+    group: "Bảng L", matchDate: new Date("2026-06-18T06:00:00+07:00"),
     venue: "Toronto Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -275,7 +275,7 @@ export const seedMatches = [
   {
     id: "L2",
     teamA: team(T.ENG), teamB: team(T.CRO),
-    group: "Bảng L", matchDate: new Date("2026-06-18T02:00:00+07:00"),
+    group: "Bảng L", matchDate: new Date("2026-06-18T03:00:00+07:00"),
     venue: "Dallas Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -283,7 +283,7 @@ export const seedMatches = [
   {
     id: "K1",
     teamA: team(T.POR), teamB: team(T.COD),
-    group: "Bảng K", matchDate: new Date("2026-06-18T02:00:00+07:00"),
+    group: "Bảng K", matchDate: new Date("2026-06-18T00:00:00+07:00"),
     venue: "Houston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -291,7 +291,7 @@ export const seedMatches = [
   {
     id: "K2",
     teamA: team(T.UZB), teamB: team(T.COL),
-    group: "Bảng K", matchDate: new Date("2026-06-18T05:00:00+07:00"),
+    group: "Bảng K", matchDate: new Date("2026-06-18T09:00:00+07:00"),
     venue: "Mexico City Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: randomVotes(),
@@ -313,7 +313,7 @@ export const seedMatches = [
   {
     id: "B3",
     teamA: team(T.SUI), teamB: team(T.BIH),
-    group: "Bảng B", matchDate: new Date("2026-06-19T05:00:00+07:00"),
+    group: "Bảng B", matchDate: new Date("2026-06-19T02:00:00+07:00"),
     venue: "Los Angeles Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -323,7 +323,7 @@ export const seedMatches = [
   {
     id: "B4",
     teamA: team(T.CAN), teamB: team(T.QAT),
-    group: "Bảng B", matchDate: new Date("2026-06-19T23:00:00+07:00"),
+    group: "Bảng B", matchDate: new Date("2026-06-19T05:00:00+07:00"),
     venue: "Vancouver Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -331,7 +331,7 @@ export const seedMatches = [
   {
     id: "A4",
     teamA: team(T.MEX), teamB: team(T.KOR),
-    group: "Bảng A", matchDate: new Date("2026-06-20T05:00:00+07:00"),
+    group: "Bảng A", matchDate: new Date("2026-06-19T08:00:00+07:00"),
     venue: "Guadalajara Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -339,7 +339,7 @@ export const seedMatches = [
   {
     id: "D3",
     teamA: team(T.USA), teamB: team(T.AUS),
-    group: "Bảng D", matchDate: new Date("2026-06-20T08:00:00+07:00"),
+    group: "Bảng D", matchDate: new Date("2026-06-20T02:00:00+07:00"),
     venue: "Seattle Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -349,7 +349,7 @@ export const seedMatches = [
   {
     id: "C3",
     teamA: team(T.SCO), teamB: team(T.MAR),
-    group: "Bảng C", matchDate: new Date("2026-06-20T23:00:00+07:00"),
+    group: "Bảng C", matchDate: new Date("2026-06-20T05:00:00+07:00"),
     venue: "Boston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -357,7 +357,7 @@ export const seedMatches = [
   {
     id: "C4",
     teamA: team(T.BRA), teamB: team(T.HAI),
-    group: "Bảng C", matchDate: new Date("2026-06-21T02:00:00+07:00"),
+    group: "Bảng C", matchDate: new Date("2026-06-20T07:30:00+07:00"),
     venue: "Philadelphia Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -365,7 +365,7 @@ export const seedMatches = [
   {
     id: "D4",
     teamA: team(T.TUR), teamB: team(T.PAR),
-    group: "Bảng D", matchDate: new Date("2026-06-21T05:00:00+07:00"),
+    group: "Bảng D", matchDate: new Date("2026-06-20T10:00:00+07:00"),
     venue: "San Francisco Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -373,7 +373,7 @@ export const seedMatches = [
   {
     id: "F3",
     teamA: team(T.NED), teamB: team(T.SWE),
-    group: "Bảng F", matchDate: new Date("2026-06-21T02:00:00+07:00"),
+    group: "Bảng F", matchDate: new Date("2026-06-21T00:00:00+07:00"),
     venue: "Houston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -381,7 +381,7 @@ export const seedMatches = [
   {
     id: "E3",
     teamA: team(T.GER), teamB: team(T.CIV),
-    group: "Bảng E", matchDate: new Date("2026-06-21T02:00:00+07:00"),
+    group: "Bảng E", matchDate: new Date("2026-06-21T03:00:00+07:00"),
     venue: "Toronto Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -391,7 +391,7 @@ export const seedMatches = [
   {
     id: "E4",
     teamA: team(T.ECU), teamB: team(T.CUR),
-    group: "Bảng E", matchDate: new Date("2026-06-21T23:00:00+07:00"),
+    group: "Bảng E", matchDate: new Date("2026-06-21T07:00:00+07:00"),
     venue: "Kansas City Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -399,7 +399,7 @@ export const seedMatches = [
   {
     id: "F4",
     teamA: team(T.TUN), teamB: team(T.JPN),
-    group: "Bảng F", matchDate: new Date("2026-06-22T02:00:00+07:00"),
+    group: "Bảng F", matchDate: new Date("2026-06-21T11:00:00+07:00"),
     venue: "Monterrey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -407,7 +407,7 @@ export const seedMatches = [
   {
     id: "H3",
     teamA: team(T.ESP), teamB: team(T.KSA),
-    group: "Bảng H", matchDate: new Date("2026-06-22T02:00:00+07:00"),
+    group: "Bảng H", matchDate: new Date("2026-06-21T23:00:00+07:00"),
     venue: "Atlanta Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -415,7 +415,7 @@ export const seedMatches = [
   {
     id: "G3",
     teamA: team(T.BEL), teamB: team(T.IRN),
-    group: "Bảng G", matchDate: new Date("2026-06-22T05:00:00+07:00"),
+    group: "Bảng G", matchDate: new Date("2026-06-22T02:00:00+07:00"),
     venue: "Los Angeles Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -425,7 +425,7 @@ export const seedMatches = [
   {
     id: "H4",
     teamA: team(T.URU), teamB: team(T.CPV),
-    group: "Bảng H", matchDate: new Date("2026-06-22T23:00:00+07:00"),
+    group: "Bảng H", matchDate: new Date("2026-06-22T05:00:00+07:00"),
     venue: "Miami Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -433,7 +433,7 @@ export const seedMatches = [
   {
     id: "G4",
     teamA: team(T.NZL), teamB: team(T.EGY),
-    group: "Bảng G", matchDate: new Date("2026-06-23T02:00:00+07:00"),
+    group: "Bảng G", matchDate: new Date("2026-06-22T08:00:00+07:00"),
     venue: "Vancouver Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -441,7 +441,7 @@ export const seedMatches = [
   {
     id: "J3",
     teamA: team(T.ARG), teamB: team(T.AUT),
-    group: "Bảng J", matchDate: new Date("2026-06-23T02:00:00+07:00"),
+    group: "Bảng J", matchDate: new Date("2026-06-23T00:00:00+07:00"),
     venue: "Dallas Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -449,7 +449,7 @@ export const seedMatches = [
   {
     id: "I3",
     teamA: team(T.FRA), teamB: team(T.IRQ),
-    group: "Bảng I", matchDate: new Date("2026-06-23T02:00:00+07:00"),
+    group: "Bảng I", matchDate: new Date("2026-06-23T04:00:00+07:00"),
     venue: "Philadelphia Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -457,7 +457,7 @@ export const seedMatches = [
   {
     id: "I4",
     teamA: team(T.NOR), teamB: team(T.SEN),
-    group: "Bảng I", matchDate: new Date("2026-06-23T05:00:00+07:00"),
+    group: "Bảng I", matchDate: new Date("2026-06-23T07:00:00+07:00"),
     venue: "New York New Jersey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -465,7 +465,7 @@ export const seedMatches = [
   {
     id: "J4",
     teamA: team(T.JOR), teamB: team(T.ALG),
-    group: "Bảng J", matchDate: new Date("2026-06-23T05:00:00+07:00"),
+    group: "Bảng J", matchDate: new Date("2026-06-23T10:00:00+07:00"),
     venue: "San Francisco Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -475,7 +475,7 @@ export const seedMatches = [
   {
     id: "K3",
     teamA: team(T.POR), teamB: team(T.UZB),
-    group: "Bảng K", matchDate: new Date("2026-06-23T23:00:00+07:00"),
+    group: "Bảng K", matchDate: new Date("2026-06-24T00:00:00+07:00"),
     venue: "Houston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -483,7 +483,7 @@ export const seedMatches = [
   {
     id: "L3",
     teamA: team(T.ENG), teamB: team(T.GHA),
-    group: "Bảng L", matchDate: new Date("2026-06-24T02:00:00+07:00"),
+    group: "Bảng L", matchDate: new Date("2026-06-24T03:00:00+07:00"),
     venue: "Boston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -491,7 +491,7 @@ export const seedMatches = [
   {
     id: "L4",
     teamA: team(T.PAN), teamB: team(T.CRO),
-    group: "Bảng L", matchDate: new Date("2026-06-24T02:00:00+07:00"),
+    group: "Bảng L", matchDate: new Date("2026-06-24T06:00:00+07:00"),
     venue: "Toronto Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -499,7 +499,7 @@ export const seedMatches = [
   {
     id: "K4",
     teamA: team(T.COL), teamB: team(T.COD),
-    group: "Bảng K", matchDate: new Date("2026-06-24T05:00:00+07:00"),
+    group: "Bảng K", matchDate: new Date("2026-06-24T09:00:00+07:00"),
     venue: "Guadalajara Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -513,7 +513,7 @@ export const seedMatches = [
   {
     id: "A5",
     teamA: team(T.CZE), teamB: team(T.MEX),
-    group: "Bảng A", matchDate: new Date("2026-06-25T02:00:00+07:00"),
+    group: "Bảng A", matchDate: new Date("2026-06-25T08:00:00+07:00"),
     venue: "Mexico City Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -521,7 +521,7 @@ export const seedMatches = [
   {
     id: "A6",
     teamA: team(T.RSA), teamB: team(T.KOR),
-    group: "Bảng A", matchDate: new Date("2026-06-25T02:00:00+07:00"),
+    group: "Bảng A", matchDate: new Date("2026-06-25T08:00:00+07:00"),
     venue: "Monterrey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -529,7 +529,7 @@ export const seedMatches = [
   {
     id: "B5",
     teamA: team(T.SUI), teamB: team(T.CAN),
-    group: "Bảng B", matchDate: new Date("2026-06-25T05:00:00+07:00"),
+    group: "Bảng B", matchDate: new Date("2026-06-25T02:00:00+07:00"),
     venue: "Vancouver Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -537,7 +537,7 @@ export const seedMatches = [
   {
     id: "B6",
     teamA: team(T.BIH), teamB: team(T.QAT),
-    group: "Bảng B", matchDate: new Date("2026-06-25T05:00:00+07:00"),
+    group: "Bảng B", matchDate: new Date("2026-06-25T02:00:00+07:00"),
     venue: "San Francisco Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -545,7 +545,7 @@ export const seedMatches = [
   {
     id: "C5",
     teamA: team(T.MAR), teamB: team(T.HAI),
-    group: "Bảng C", matchDate: new Date("2026-06-25T02:00:00+07:00"),
+    group: "Bảng C", matchDate: new Date("2026-06-25T05:00:00+07:00"),
     venue: "Atlanta Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -553,7 +553,7 @@ export const seedMatches = [
   {
     id: "C6",
     teamA: team(T.BRA), teamB: team(T.SCO),
-    group: "Bảng C", matchDate: new Date("2026-06-25T02:00:00+07:00"),
+    group: "Bảng C", matchDate: new Date("2026-06-25T05:00:00+07:00"),
     venue: "Miami Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -563,7 +563,7 @@ export const seedMatches = [
   {
     id: "D5",
     teamA: team(T.TUR), teamB: team(T.USA),
-    group: "Bảng D", matchDate: new Date("2026-06-26T05:00:00+07:00"),
+    group: "Bảng D", matchDate: new Date("2026-06-26T09:00:00+07:00"),
     venue: "Los Angeles Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -571,7 +571,7 @@ export const seedMatches = [
   {
     id: "D6",
     teamA: team(T.PAR), teamB: team(T.AUS),
-    group: "Bảng D", matchDate: new Date("2026-06-26T05:00:00+07:00"),
+    group: "Bảng D", matchDate: new Date("2026-06-26T09:00:00+07:00"),
     venue: "Dallas Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -579,7 +579,7 @@ export const seedMatches = [
   {
     id: "E5",
     teamA: team(T.CUR), teamB: team(T.CIV),
-    group: "Bảng E", matchDate: new Date("2026-06-26T02:00:00+07:00"),
+    group: "Bảng E", matchDate: new Date("2026-06-26T03:00:00+07:00"),
     venue: "Philadelphia Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -587,7 +587,7 @@ export const seedMatches = [
   {
     id: "E6",
     teamA: team(T.ECU), teamB: team(T.GER),
-    group: "Bảng E", matchDate: new Date("2026-06-26T02:00:00+07:00"),
+    group: "Bảng E", matchDate: new Date("2026-06-26T03:00:00+07:00"),
     venue: "Houston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -595,7 +595,7 @@ export const seedMatches = [
   {
     id: "F5",
     teamA: team(T.JPN), teamB: team(T.SWE),
-    group: "Bảng F", matchDate: new Date("2026-06-26T02:00:00+07:00"),
+    group: "Bảng F", matchDate: new Date("2026-06-26T06:00:00+07:00"),
     venue: "Dallas Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -603,7 +603,7 @@ export const seedMatches = [
   {
     id: "F6",
     teamA: team(T.TUN), teamB: team(T.NED),
-    group: "Bảng F", matchDate: new Date("2026-06-26T02:00:00+07:00"),
+    group: "Bảng F", matchDate: new Date("2026-06-26T06:00:00+07:00"),
     venue: "Monterrey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -613,7 +613,7 @@ export const seedMatches = [
   {
     id: "G5",
     teamA: team(T.EGY), teamB: team(T.IRN),
-    group: "Bảng G", matchDate: new Date("2026-06-27T02:00:00+07:00"),
+    group: "Bảng G", matchDate: new Date("2026-06-27T10:00:00+07:00"),
     venue: "Los Angeles Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -621,7 +621,7 @@ export const seedMatches = [
   {
     id: "G6",
     teamA: team(T.NZL), teamB: team(T.BEL),
-    group: "Bảng G", matchDate: new Date("2026-06-27T02:00:00+07:00"),
+    group: "Bảng G", matchDate: new Date("2026-06-27T10:00:00+07:00"),
     venue: "Seattle Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -629,7 +629,7 @@ export const seedMatches = [
   {
     id: "H5",
     teamA: team(T.CPV), teamB: team(T.KSA),
-    group: "Bảng H", matchDate: new Date("2026-06-27T02:00:00+07:00"),
+    group: "Bảng H", matchDate: new Date("2026-06-27T07:00:00+07:00"),
     venue: "Atlanta Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -637,7 +637,7 @@ export const seedMatches = [
   {
     id: "H6",
     teamA: team(T.URU), teamB: team(T.ESP),
-    group: "Bảng H", matchDate: new Date("2026-06-27T02:00:00+07:00"),
+    group: "Bảng H", matchDate: new Date("2026-06-27T07:00:00+07:00"),
     venue: "Miami Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -645,7 +645,7 @@ export const seedMatches = [
   {
     id: "I5",
     teamA: team(T.SEN), teamB: team(T.IRQ),
-    group: "Bảng I", matchDate: new Date("2026-06-27T05:00:00+07:00"),
+    group: "Bảng I", matchDate: new Date("2026-06-27T02:00:00+07:00"),
     venue: "Boston Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -653,7 +653,7 @@ export const seedMatches = [
   {
     id: "I6",
     teamA: team(T.NOR), teamB: team(T.FRA),
-    group: "Bảng I", matchDate: new Date("2026-06-27T05:00:00+07:00"),
+    group: "Bảng I", matchDate: new Date("2026-06-27T02:00:00+07:00"),
     venue: "New York New Jersey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -663,7 +663,7 @@ export const seedMatches = [
   {
     id: "J5",
     teamA: team(T.ALG), teamB: team(T.AUT),
-    group: "Bảng J", matchDate: new Date("2026-06-27T23:00:00+07:00"),
+    group: "Bảng J", matchDate: new Date("2026-06-28T09:00:00+07:00"),
     venue: "Kansas City Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -671,7 +671,7 @@ export const seedMatches = [
   {
     id: "J6",
     teamA: team(T.JOR), teamB: team(T.ARG),
-    group: "Bảng J", matchDate: new Date("2026-06-27T23:00:00+07:00"),
+    group: "Bảng J", matchDate: new Date("2026-06-28T09:00:00+07:00"),
     venue: "San Francisco Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -679,7 +679,7 @@ export const seedMatches = [
   {
     id: "K5",
     teamA: team(T.COD), teamB: team(T.UZB),
-    group: "Bảng K", matchDate: new Date("2026-06-28T02:00:00+07:00"),
+    group: "Bảng K", matchDate: new Date("2026-06-28T06:30:00+07:00"),
     venue: "Atlanta Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -687,7 +687,7 @@ export const seedMatches = [
   {
     id: "K6",
     teamA: team(T.COL), teamB: team(T.POR),
-    group: "Bảng K", matchDate: new Date("2026-06-28T02:00:00+07:00"),
+    group: "Bảng K", matchDate: new Date("2026-06-28T06:30:00+07:00"),
     venue: "Miami Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -695,7 +695,7 @@ export const seedMatches = [
   {
     id: "L5",
     teamA: team(T.CRO), teamB: team(T.GHA),
-    group: "Bảng L", matchDate: new Date("2026-06-28T02:00:00+07:00"),
+    group: "Bảng L", matchDate: new Date("2026-06-28T04:00:00+07:00"),
     venue: "Toronto Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -703,7 +703,7 @@ export const seedMatches = [
   {
     id: "L6",
     teamA: team(T.PAN), teamB: team(T.ENG),
-    group: "Bảng L", matchDate: new Date("2026-06-28T02:00:00+07:00"),
+    group: "Bảng L", matchDate: new Date("2026-06-28T04:00:00+07:00"),
     venue: "New York New Jersey Stadium", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
