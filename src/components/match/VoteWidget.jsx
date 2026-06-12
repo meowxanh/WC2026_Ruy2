@@ -14,7 +14,7 @@ export default function VoteWidget({ match }) {
     user?.uid
   );
 
-  const isLocked = match.status !== "upcoming" || new Date() >= new Date(match.matchDate);
+  const isLocked = (match.status !== "upcoming" || new Date() >= new Date(match.matchDate)) && !match.forceUnlocked;
   const totalVotes = match.votes?.total || 0;
 
   const getPercent = (key) => {

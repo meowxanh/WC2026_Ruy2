@@ -17,6 +17,7 @@ export default function MatchCard({ match }) {
   const [editStatus, setEditStatus] = useState(match.status);
   const [editScoreA, setEditScoreA] = useState(match.scoreA ?? "");
   const [editScoreB, setEditScoreB] = useState(match.scoreB ?? "");
+  const [editForceUnlocked, setEditForceUnlocked] = useState(match.forceUnlocked || false);
   const [saving, setSaving] = useState(false);
 
   const formatDate = (date) => {
@@ -97,7 +98,8 @@ export default function MatchCard({ match }) {
         status: editStatus,
         scoreA: sA,
         scoreB: sB,
-        result: result
+        result: result,
+        forceUnlocked: editForceUnlocked
       });
 
       // 2. Nếu trạng thái chuyển sang kết thúc, xử lý điểm bình chọn cho người dùng
@@ -191,6 +193,7 @@ export default function MatchCard({ match }) {
                 setEditStatus(match.status);
                 setEditScoreA(match.scoreA ?? "");
                 setEditScoreB(match.scoreB ?? "");
+                setEditForceUnlocked(match.forceUnlocked || false);
                 setIsEditing(true);
               }}
               className="admin-edit-btn"
@@ -250,6 +253,19 @@ export default function MatchCard({ match }) {
             </div>
           )}
 
+          <div className="form-group admin-checkbox-group">
+            <input
+              type="checkbox"
+              id={`forceUnlocked-${match.id}`}
+              checked={editForceUnlocked}
+              onChange={(e) => setEditForceUnlocked(e.target.checked)}
+              className="admin-checkbox"
+            />
+            <label className="checkbox-label" htmlFor={`forceUnlocked-${match.id}`}>
+              🔓 Mở khóa bình chọn (Cho phép vote quá giờ)
+            </label>
+          </div>
+
           <div className="admin-panel-actions">
             <button
               type="button"
@@ -258,6 +274,7 @@ export default function MatchCard({ match }) {
                 setEditStatus(match.status);
                 setEditScoreA(match.scoreA ?? "");
                 setEditScoreB(match.scoreB ?? "");
+                setEditForceUnlocked(match.forceUnlocked || false);
               }}
               disabled={saving}
               className="login-btn admin-btn-cancel"
