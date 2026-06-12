@@ -1472,9 +1472,10 @@ a {
 }
 
 .admin-score-inputs .form-input {
-  width: 70px;
+  width: 50px;
   text-align: center;
-  padding: 8px 12px;
+  padding: 6px 8px;
+  font-size: 0.9rem;
 }
 
 .admin-score-separator {
@@ -1486,14 +1487,9 @@ a {
 
 .admin-panel-actions {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  gap: 8px;
   margin-top: 14px;
-}
-
-.admin-actions-row {
-  display: flex;
-  gap: 10px;
   width: 100%;
 }
 
@@ -1503,8 +1499,8 @@ a {
   border: 1px solid var(--border-subtle);
   flex: 1 !important;
   width: auto !important;
-  padding: 10px 14px;
-  font-size: 0.85rem;
+  padding: 10px 8px !important;
+  font-size: 0.82rem !important;
   cursor: pointer;
 }
 
@@ -1519,8 +1515,8 @@ a {
   border: none;
   flex: 1 !important;
   width: auto !important;
-  padding: 10px 14px;
-  font-size: 0.85rem;
+  padding: 10px 8px !important;
+  font-size: 0.82rem !important;
   cursor: pointer;
 }
 
@@ -1533,9 +1529,10 @@ a {
   background: rgba(239, 68, 68, 0.12) !important;
   color: var(--accent-red) !important;
   border: 1px solid rgba(239, 68, 68, 0.25) !important;
-  width: 100% !important;
-  padding: 10px 14px !important;
-  font-size: 0.85rem;
+  flex: 1 !important;
+  width: auto !important;
+  padding: 10px 8px !important;
+  font-size: 0.82rem !important;
   cursor: pointer;
   transition: all var(--transition-base);
 }
