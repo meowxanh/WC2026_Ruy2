@@ -153,6 +153,84 @@ export default function Leaderboard() {
     return () => unsubscribe?.();
   }, []);
 
+  useEffect(() => {
+    if (isAdmin && !usingLocal && users.length > 0) {
+      const autoRecalculate = async () => {
+        try {
+          const matchesSnapshot = await getDocs(collection(db, "matches"));
+          const finishedMatches = {};
+          matchesSnapshot.docs.forEach((doc) => {
+            const data = doc.data();
+            if (data.status === "finished" && data.result) {
+              finishedMatches[doc.id] = data.result;
+            }
+          });
+
+          const votesSnapshot = await getDocs(collection(db, "votes"));
+          const usersSnapshot = await getDocs(collection(db, "users"));
+          const userScores = {};
+
+          usersSnapshot.docs.forEach((doc) => {
+            userScores[doc.id] = { correct: 0, total: 0 };
+          });
+
+          const batch = writeBatch(db);
+          let needsUpdate = false;
+
+          for (const voteDoc of votesSnapshot.docs) {
+            const voteData = voteDoc.data();
+            const matchResult = finishedMatches[voteData.matchId];
+
+            if (!userScores[voteData.userId]) {
+              userScores[voteData.userId] = { correct: 0, total: 0 };
+            }
+
+            if (matchResult) {
+              const isCorrect = voteData.vote === matchResult;
+              userScores[voteData.userId].total += 1;
+              if (isCorrect) {
+                userScores[voteData.userId].correct += 1;
+              }
+
+              if (voteData.isCorrect !== isCorrect) {
+                batch.update(voteDoc.ref, { isCorrect: isCorrect });
+                needsUpdate = true;
+              }
+            } else {
+              if (voteData.isCorrect !== null && voteData.isCorrect !== undefined) {
+                batch.update(voteDoc.ref, { isCorrect: null });
+                needsUpdate = true;
+              }
+            }
+          }
+
+          for (const userDoc of usersSnapshot.docs) {
+            const userData = userDoc.data();
+            const computed = userScores[userDoc.id] || { correct: 0, total: 0 };
+            if (
+              userData.correctPredictions !== computed.correct ||
+              userData.totalPredictions !== computed.total
+            ) {
+              batch.update(userDoc.ref, {
+                correctPredictions: computed.correct,
+                totalPredictions: computed.total,
+              });
+              needsUpdate = true;
+            }
+          }
+
+          if (needsUpdate) {
+            await batch.commit();
+            console.log("Leaderboard scores automatically synced and updated!");
+          }
+        } catch (err) {
+          console.error("Error auto-recalculating leaderboard:", err);
+        }
+      };
+      autoRecalculate();
+    }
+  }, [isAdmin, usingLocal, users.length]);
+
   if (loading) {
     return (
       <div className="match-list-loading">
