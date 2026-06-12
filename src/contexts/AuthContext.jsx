@@ -16,6 +16,7 @@ const AUTH_TIMEOUT_MS = 4000;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const resolved = useRef(false);
 
@@ -35,8 +36,17 @@ export function AuthProvider({ children }) {
       resolved.current = true;
 
       if (firebaseUser) {
-        // Chỉ set user khi có thông tin
         setUser(firebaseUser);
+        
+        // Xác định email admin (mặc định hỗ trợ meowxanh@gmail.com, admin@gmail.com, và env)
+        const adminEmails = [
+          "meowxanh@gmail.com",
+          "admin@gmail.com",
+          ...(import.meta.env.VITE_ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase())
+        ];
+        const emailIsAdmin = firebaseUser.email && adminEmails.includes(firebaseUser.email.toLowerCase());
+        let firestoreIsAdmin = false;
+
         // Tạo/cập nhật user document trong Firestore
         try {
           const userRef = doc(db, "users", firebaseUser.uid);
@@ -50,13 +60,20 @@ export function AuthProvider({ children }) {
               correctPredictions: 0,
               totalPredictions: 0,
               createdAt: serverTimestamp(),
+              isAdmin: emailIsAdmin,
             });
+            firestoreIsAdmin = emailIsAdmin;
+          } else {
+            const data = userSnap.data();
+            firestoreIsAdmin = data?.isAdmin || data?.role === "admin";
           }
         } catch (err) {
           console.warn("Firestore user sync skipped:", err.message);
         }
+        setIsAdmin(emailIsAdmin || firestoreIsAdmin);
       } else {
         setUser(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
@@ -74,6 +91,14 @@ export function AuthProvider({ children }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName });
     
+    // Xác định email admin
+    const adminEmails = [
+      "meowxanh@gmail.com",
+      "admin@gmail.com",
+      ...(import.meta.env.VITE_ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase())
+    ];
+    const emailIsAdmin = email && adminEmails.includes(email.toLowerCase());
+
     // Lưu thông tin người dùng vào Firestore
     try {
       const userRef = doc(db, "users", userCredential.user.uid);
@@ -85,25 +110,31 @@ export function AuthProvider({ children }) {
         correctPredictions: 0,
         totalPredictions: 0,
         createdAt: serverTimestamp(),
+        isAdmin: emailIsAdmin,
       }, { merge: true });
     } catch (err) {
       console.warn("Firestore email signup sync skipped:", err.message);
     }
     
-    // Cập nhật lại user local state với displayName mới
+    // Cập nhật lại user local state
     setUser({ ...userCredential.user, displayName });
+    setIsAdmin(emailIsAdmin);
     return userCredential.user;
   };
 
   const loginWithEmail = (email, password) => 
     signInWithEmailAndPassword(auth, email, password);
 
-  const logout = () => signOut(auth);
+  const logout = () => {
+    setIsAdmin(false);
+    return signOut(auth);
+  };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        isAdmin,
         loading,
         signInWithGoogle,
         signInWithGithub,
