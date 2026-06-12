@@ -1,14 +1,21 @@
+import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const location = useLocation();
 
-  const navItems = [
-    { path: "/", label: "Trận đấu", icon: "⚽" },
-    { path: "/leaderboard", label: "Bảng xếp hạng", icon: "🏆" },
-  ];
+  const navItems = useMemo(() => {
+    const items = [
+      { path: "/", label: "Trận đấu", icon: "⚽" },
+      { path: "/leaderboard", label: "Bảng xếp hạng", icon: "🏆" },
+    ];
+    if (user && isAdmin) {
+      items.push({ path: "/admin/create-account", label: "Tạo tài khoản", icon: "👤" });
+    }
+    return items;
+  }, [user, isAdmin]);
 
   return (
     <header className="header">

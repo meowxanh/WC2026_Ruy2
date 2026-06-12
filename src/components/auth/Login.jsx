@@ -7,11 +7,8 @@ export default function Login() {
   const navigate = useNavigate();
 
   // Form states
-  const [isRegister, setIsRegister] = useState(false);
-  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   
   const [error, setError] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
@@ -52,56 +49,24 @@ export default function Login() {
       return;
     }
 
-    if (isRegister) {
-      if (!displayName) {
-        setError("Vui lòng nhập họ và tên.");
-        setLoadingSubmit(false);
-        return;
+    try {
+      await loginWithEmail(email, password);
+      navigate("/");
+    } catch (err) {
+      console.error("Login error:", err);
+      if (
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/invalid-credential"
+      ) {
+        setError("Email hoặc mật khẩu không đúng.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Email không đúng định dạng.");
+      } else {
+        setError(err.message || "Đã có lỗi xảy ra khi đăng nhập.");
       }
-      if (password !== confirmPassword) {
-        setError("Mật khẩu xác nhận không khớp.");
-        setLoadingSubmit(false);
-        return;
-      }
-      if (password.length < 6) {
-        setError("Mật khẩu phải có ít nhất 6 ký tự.");
-        setLoadingSubmit(false);
-        return;
-      }
-
-      try {
-        await signUpWithEmail(email, password, displayName);
-        navigate("/");
-      } catch (err) {
-        console.error("Sign up error:", err);
-        if (err.code === "auth/email-already-in-use") {
-          setError("Email này đã được sử dụng bởi một tài khoản khác.");
-        } else if (err.code === "auth/weak-password") {
-          setError("Mật khẩu quá yếu (phải chứa ít nhất 6 ký tự).");
-        } else if (err.code === "auth/invalid-email") {
-          setError("Email không đúng định dạng.");
-        } else {
-          setError(err.message || "Đã có lỗi xảy ra khi đăng ký.");
-        }
-      } finally {
-        setLoadingSubmit(false);
-      }
-    } else {
-      try {
-        await loginWithEmail(email, password);
-        navigate("/");
-      } catch (err) {
-        console.error("Login error:", err);
-        if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-          setError("Email hoặc mật khẩu không đúng.");
-        } else if (err.code === "auth/invalid-email") {
-          setError("Email không đúng định dạng.");
-        } else {
-          setError(err.message || "Đã có lỗi xảy ra khi đăng nhập.");
-        }
-      } finally {
-        setLoadingSubmit(false);
-      }
+    } finally {
+      setLoadingSubmit(false);
     }
   };
 
@@ -131,21 +96,6 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="auth-error-msg">{error}</div>}
           
-          {isRegister && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="displayName">Họ và tên</label>
-              <input
-                type="text"
-                id="displayName"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Nhập họ và tên của bạn"
-                required
-                className="form-input"
-              />
-            </div>
-          )}
-
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email</label>
             <input
@@ -172,21 +122,6 @@ export default function Login() {
             />
           </div>
 
-          {isRegister && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="confirmPassword">Xác nhận mật khẩu</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="form-input"
-              />
-            </div>
-          )}
-
           <button
             type="submit"
             disabled={loadingSubmit}
@@ -194,45 +129,11 @@ export default function Login() {
           >
             {loadingSubmit ? (
               <span className="spinner spinner-btn"></span>
-            ) : isRegister ? (
-              "Đăng ký tài khoản"
             ) : (
               "Đăng nhập"
             )}
           </button>
         </form>
-
-        <div className="auth-toggle">
-          {isRegister ? (
-            <p>
-              Đã có tài khoản?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRegister(false);
-                  setError("");
-                }}
-                className="auth-toggle-link"
-              >
-                Đăng nhập
-              </button>
-            </p>
-          ) : (
-            <p>
-              Chưa có tài khoản?{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRegister(true);
-                  setError("");
-                }}
-                className="auth-toggle-link"
-              >
-                Đăng ký ngay
-              </button>
-            </p>
-          )}
-        </div>
 
         <div className="login-divider">
           <span className="login-divider-text">Hoặc tiếp tục với</span>

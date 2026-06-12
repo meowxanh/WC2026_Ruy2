@@ -4,6 +4,7 @@ import Layout from "./components/layout/Layout";
 import Login from "./components/auth/Login";
 import MatchList from "./components/match/MatchList";
 import Leaderboard from "./components/leaderboard/Leaderboard";
+import AdminCreateAccount from "./components/admin/AdminCreateAccount";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,6 +25,25 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function AdminRoute({ children }) {
+  const { user, isAdmin, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="match-list-loading">
+        <div className="spinner"></div>
+        <p>Đang kiểm tra quyền Admin...</p>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -37,6 +57,14 @@ function AppRoutes() {
       >
         <Route path="/" element={<MatchList />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route
+          path="/admin/create-account"
+          element={
+            <AdminRoute>
+              <AdminCreateAccount />
+            </AdminRoute>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

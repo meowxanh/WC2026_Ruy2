@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useMatches } from "../../hooks/useMatches";
@@ -17,19 +17,56 @@ export default function MatchList() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null); // "success" | "error"
+  const [now, setNow] = useState(new Date());
+
+  // Cập nhật thời gian thực tế mỗi 15 giây để tự động chuyển trạng thái trận đấu
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const processedMatches = useMemo(() => {
+    return matches.map((m) => {
+      // Nếu trạng thái trong DB đã là finished, giữ nguyên
+      if (m.status === "finished") return m;
+
+      const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
+      let calculatedStatus = m.status;
+
+      if (now < kickoff) {
+        calculatedStatus = "upcoming";
+      } else {
+        const diffMs = now - kickoff;
+        const diffMinutes = diffMs / (1000 * 60);
+
+        if (diffMinutes < 120) { // Đang đá (LIVE) trong 120 phút kể từ kickoff
+          calculatedStatus = "live";
+        } else { // Sau 120 phút coi như đã kết thúc
+          calculatedStatus = "finished";
+        }
+      }
+
+      return {
+        ...m,
+        status: calculatedStatus,
+      };
+    });
+  }, [matches, now]);
 
   const filteredMatches = useMemo(() => {
-    if (activeFilter === "all") return matches;
-    return matches.filter((m) => m.status === activeFilter);
-  }, [matches, activeFilter]);
+    if (activeFilter === "all") return processedMatches;
+    return processedMatches.filter((m) => m.status === activeFilter);
+  }, [processedMatches, activeFilter]);
 
   const counts = useMemo(() => {
-    const c = { all: matches.length, upcoming: 0, live: 0, finished: 0 };
-    matches.forEach((m) => {
+    const c = { all: processedMatches.length, upcoming: 0, live: 0, finished: 0 };
+    processedMatches.forEach((m) => {
       if (c[m.status] !== undefined) c[m.status]++;
     });
     return c;
-  }, [matches]);
+  }, [processedMatches]);
 
   // Đẩy toàn bộ seed data lên Firestore
   const handleSeedFirestore = useCallback(async () => {
