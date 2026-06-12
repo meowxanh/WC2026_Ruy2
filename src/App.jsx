@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Layout from "./components/layout/Layout";
 import Login from "./components/auth/Login";
@@ -75,10 +75,10 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <HashRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
-    </HashRouter>
+    </BrowserRouter>
   );
 }
