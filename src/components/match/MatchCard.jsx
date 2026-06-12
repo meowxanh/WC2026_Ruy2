@@ -248,7 +248,10 @@ export default function MatchCard({ match }) {
           {isAdmin && !isEditing && (
             <button
               onClick={() => {
-                setEditStatus(match.status);
+                const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
+                const hasEnded = new Date() >= new Date(kickoff.getTime() + 2 * 60 * 60 * 1000);
+                
+                setEditStatus(hasEnded ? "finished" : match.status);
                 setEditScoreA(match.scoreA ?? "");
                 setEditScoreB(match.scoreB ?? "");
                 setEditForceUnlocked(match.forceUnlocked || false);
