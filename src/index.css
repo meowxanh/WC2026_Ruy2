@@ -1038,6 +1038,11 @@ a {
   box-shadow: none !important;
 }
 
+.vote-btn--selected:disabled {
+  opacity: 1 !important;
+  cursor: default;
+}
+
 .vote-btn-label {
   font-weight: 600;
   font-size: 0.78rem;

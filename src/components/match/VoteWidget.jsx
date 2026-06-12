@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useVote } from "../../hooks/useVotes";
 
@@ -14,7 +15,17 @@ export default function VoteWidget({ match }) {
     user?.uid
   );
 
-  const isLocked = (match.status !== "upcoming" || new Date() >= new Date(match.matchDate)) && !match.forceUnlocked;
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 2000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
+  const isLocked = (match.status !== "upcoming" || now >= kickoff) && !match.forceUnlocked;
   const totalVotes = match.votes?.total || 0;
 
   const getPercent = (key) => {
@@ -27,7 +38,7 @@ export default function VoteWidget({ match }) {
   const pctB = getPercent("teamB");
 
   const handleVote = async (vote) => {
-    if (!user || isLocked || voting || vote === userVote) return;
+    if (!user || isLocked || voting) return;
     try {
       await castVote(vote, user.displayName, user.photoURL);
     } catch (error) {
@@ -39,7 +50,8 @@ export default function VoteWidget({ match }) {
     return <div className="vote-widget vote-widget--loading">Đang tải...</div>;
   }
 
-  const isDisabled = isLocked || voting || !user;
+  // Vô hiệu hóa nút bấm khi: Đã khóa, Đang gửi, Chưa đăng nhập, Hoặc đã bình chọn rồi (để đổi thì bấm nút Thay đổi)
+  const isDisabled = isLocked || voting || !user || !!userVote;
 
   return (
     <div className="vote-widget">
@@ -105,7 +117,26 @@ export default function VoteWidget({ match }) {
         {isLocked && <span className="vote-status-text">🔒 Đã khóa bình chọn</span>}
         {userVote && !isLocked && (
           <span className="vote-status-text vote-status-text--success">
-            ✅ Đã bình chọn
+            ✅ Đã bình chọn{" "}
+            <button
+              type="button"
+              className="vote-change-link"
+              onClick={() => handleVote(userVote)}
+              disabled={voting}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--accent-gold)",
+                textDecoration: "underline",
+                fontSize: "0.75rem",
+                marginLeft: "6px",
+                cursor: "pointer",
+                display: "inline",
+                padding: 0
+              }}
+            >
+              (Thay đổi)
+            </button>
           </span>
         )}
         {totalVotes > 0 && (
