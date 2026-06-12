@@ -1225,6 +1225,7 @@ a {
 }
 
 .lb-cell--correct,
+.lb-cell--wrong,
 .lb-cell--total {
   text-align: center;
   font-weight: 600;
@@ -1232,6 +1233,10 @@ a {
 
 .lb-cell--correct {
   color: var(--accent-green);
+}
+
+.lb-cell--wrong {
+  color: #ef4444;
 }
 
 .lb-rate-bar {
@@ -1394,7 +1399,9 @@ a {
   }
 
   .lb-th--total,
-  .lb-cell--total {
+  .lb-cell--total,
+  .lb-th--wrong,
+  .lb-cell--wrong {
     display: none;
   }
 }

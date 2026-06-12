@@ -104,6 +104,7 @@ export default function Leaderboard() {
               <th className="lb-th lb-th--rank">Hạng</th>
               <th className="lb-th lb-th--user">Người chơi</th>
               <th className="lb-th lb-th--correct">Đúng</th>
+              <th className="lb-th lb-th--wrong">Sai</th>
               <th className="lb-th lb-th--total">Tổng</th>
               <th className="lb-th lb-th--rate">Tỷ lệ</th>
             </tr>
@@ -117,6 +118,7 @@ export default function Leaderboard() {
                     )
                   : 0;
               const isTop3 = index < 3;
+              const wrongCount = (user.totalPredictions || 0) - (user.correctPredictions || 0);
 
               return (
                 <tr
@@ -144,6 +146,9 @@ export default function Leaderboard() {
                   </td>
                   <td className="lb-cell lb-cell--correct">
                     {user.correctPredictions}
+                  </td>
+                  <td className="lb-cell lb-cell--wrong">
+                    {wrongCount}
                   </td>
                   <td className="lb-cell lb-cell--total">
                     {user.totalPredictions}
