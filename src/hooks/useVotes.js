@@ -136,5 +136,58 @@ export function useVote(matchId, userId) {
     [matchId, userId, userVote, voteDocId, voting]
   );
 
-  return { userVote, loading, voting, castVote };
+  const cancelVote = useCallback(
+    async () => {
+      if (!userId || !matchId || voting || !voteDocId || !userVote) return;
+
+      setVoting(true);
+      try {
+        const matchRef = doc(db, "matches", matchId);
+        const voteRef = doc(db, "votes", voteDocId);
+
+        await runTransaction(db, async (transaction) => {
+          const matchDoc = await transaction.get(matchRef);
+          if (!matchDoc.exists()) {
+            throw new Error("Trận đấu không tồn tại");
+          }
+
+          const matchData = matchDoc.data();
+          const isMatchLocked =
+            (matchData.status !== "upcoming" ||
+              new Date() >= matchData.matchDate.toDate()) &&
+            !matchData.forceUnlocked;
+          if (isMatchLocked) {
+            throw new Error("Trận đấu đã bắt đầu, không thể hủy bình chọn");
+          }
+
+          const voteDoc = await transaction.get(voteRef);
+          if (!voteDoc.exists()) {
+            throw new Error("Bình chọn không tồn tại");
+          }
+
+          const currentVote = voteDoc.data().vote;
+
+          // Delete vote document
+          transaction.delete(voteRef);
+
+          // Update counter in match: decrement currentVote and total
+          transaction.update(matchRef, {
+            [`votes.${currentVote}`]: increment(-1),
+            "votes.total": increment(-1),
+          });
+        });
+
+        setUserVote(null);
+        setVoteDocId(null);
+      } catch (error) {
+        console.error("Cancel vote error:", error);
+        throw error;
+      } finally {
+        setVoting(false);
+      }
+    },
+    [matchId, userId, userVote, voteDocId, voting]
+  );
+
+  return { userVote, loading, voting, castVote, cancelVote };
 }

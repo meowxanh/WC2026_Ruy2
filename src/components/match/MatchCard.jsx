@@ -325,43 +325,36 @@ export default function MatchCard({ match }) {
           </div>
 
           <div className="admin-panel-actions">
+            <div className="admin-actions-row">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditStatus(match.status);
+                  setEditScoreA(match.scoreA ?? "");
+                  setEditScoreB(match.scoreB ?? "");
+                  setEditForceUnlocked(match.forceUnlocked || false);
+                }}
+                disabled={saving}
+                className="login-btn admin-btn-cancel"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="login-btn admin-btn-save"
+              >
+                {saving ? "Đang lưu..." : "Lưu"}
+              </button>
+            </div>
             <button
               type="button"
               onClick={handleResetVotes}
               disabled={saving}
-              className="login-btn"
-              style={{
-                background: "rgba(239, 68, 68, 0.15)",
-                color: "var(--accent-red)",
-                borderColor: "rgba(239, 68, 68, 0.3)",
-                marginRight: "auto",
-                flex: "none",
-                padding: "10px 14px",
-                fontSize: "0.85rem"
-              }}
+              className="login-btn admin-btn-reset"
             >
               🔄 Reset bình chọn
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditing(false);
-                setEditStatus(match.status);
-                setEditScoreA(match.scoreA ?? "");
-                setEditScoreB(match.scoreB ?? "");
-                setEditForceUnlocked(match.forceUnlocked || false);
-              }}
-              disabled={saving}
-              className="login-btn admin-btn-cancel"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="login-btn admin-btn-save"
-            >
-              {saving ? "Đang lưu..." : "Lưu"}
             </button>
           </div>
         </form>

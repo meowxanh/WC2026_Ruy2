@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { collection, query, where, onSnapshot, getDocs } from "firebase/firestore";
+import { db } from "../../lib/firebase";
 import { useAuth } from "../../contexts/AuthContext";
 import { useVote } from "../../hooks/useVotes";
 
@@ -9,10 +11,14 @@ import { useVote } from "../../hooks/useVotes";
  * - Khóa bình chọn khi trận đã diễn ra
  */
 export default function VoteWidget({ match }) {
-  const { user } = useAuth();
-  const { userVote, loading, voting, castVote } = useVote(
+  const { user, isAdmin } = useAuth();
+  const [selectedUserId, setSelectedUserId] = useState(user?.uid);
+  const [usersList, setUsersList] = useState([]);
+  const [allVotes, setAllVotes] = useState([]);
+
+  const { userVote, loading, voting, castVote, cancelVote } = useVote(
     match.id,
-    user?.uid
+    selectedUserId
   );
 
   const [now, setNow] = useState(new Date());
@@ -23,6 +29,41 @@ export default function VoteWidget({ match }) {
     }, 2000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch users list for Admin delegated voting
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchUsers = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "users"));
+        const list = snapshot.docs.map(doc => ({
+          uid: doc.id,
+          displayName: doc.data().displayName || doc.data().email || "Ẩn danh",
+          photoURL: doc.data().photoURL
+        })).sort((a, b) => a.displayName.localeCompare(b.displayName));
+        setUsersList(list);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    };
+    fetchUsers();
+  }, [isAdmin]);
+
+  // Real-time listener for all votes on this match
+  useEffect(() => {
+    if (!match.id) return;
+    const q = query(collection(db, "votes"), where("matchId", "==", match.id));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const list = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAllVotes(list);
+    }, (err) => {
+      console.error(err);
+    });
+    return () => unsubscribe();
+  }, [match.id]);
 
   const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
   const isLocked = (match.status !== "upcoming" || now >= kickoff) && !match.forceUnlocked;
@@ -40,7 +81,18 @@ export default function VoteWidget({ match }) {
   const handleVote = async (vote) => {
     if (!user || isLocked || voting) return;
     try {
-      await castVote(vote, user.displayName, user.photoURL);
+      if (vote === userVote) {
+        // Tích thêm 1 lần là hủy chọn
+        await cancelVote();
+      } else {
+        const targetUser = selectedUserId === user.uid
+          ? user
+          : usersList.find(u => u.uid === selectedUserId);
+        const targetName = targetUser?.displayName || targetUser?.email || "Người chơi";
+        const targetPhoto = targetUser?.photoURL || null;
+
+        await castVote(vote, targetName, targetPhoto);
+      }
     } catch (error) {
       alert(error.message || "Không thể bình chọn. Vui lòng thử lại.");
     }
@@ -50,11 +102,41 @@ export default function VoteWidget({ match }) {
     return <div className="vote-widget vote-widget--loading">Đang tải...</div>;
   }
 
-  // Vô hiệu hóa nút bấm khi: Đã khóa, Đang gửi, Chưa đăng nhập, Hoặc đã bình chọn rồi (để đổi thì bấm nút Thay đổi)
-  const isDisabled = isLocked || voting || !user || !!userVote;
+  // Vô hiệu hóa nút bấm khi: Đã khóa, Đang gửi, Chưa đăng nhập (Không khóa khi đã vote để người dùng đổi hoặc hủy)
+  const isDisabled = isLocked || voting || !user;
+
+  const teamAVoters = allVotes.filter(v => v.vote === "teamA").map(v => v.userName || "Ẩn danh");
+  const drawVoters = allVotes.filter(v => v.vote === "draw").map(v => v.userName || "Ẩn danh");
+  const teamBVoters = allVotes.filter(v => v.vote === "teamB").map(v => v.userName || "Ẩn danh");
 
   return (
     <div className="vote-widget">
+      {/* Admin vote select */}
+      {isAdmin && usersList.length > 0 && (
+        <div className="admin-vote-select" style={{ marginBottom: "12px", fontSize: "0.82rem", display: "flex", alignItems: "center" }}>
+          <label style={{ color: "var(--text-secondary)", marginRight: "8px", fontWeight: "600" }}>👤 Bình chọn hộ:</label>
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+            style={{
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid var(--border-subtle)",
+              borderRadius: "4px",
+              color: "var(--text-primary)",
+              padding: "4px 8px",
+              outline: "none",
+              fontSize: "0.8rem",
+              cursor: "pointer"
+            }}
+          >
+            <option value={user.uid}>Chính mình ({user.displayName || "Admin"})</option>
+            {usersList.filter(u => u.uid !== user.uid).map(u => (
+              <option key={u.uid} value={u.uid}>{u.displayName}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Vote buttons */}
       <div className="vote-buttons">
         <button
@@ -135,7 +217,7 @@ export default function VoteWidget({ match }) {
                 padding: 0
               }}
             >
-              (Thay đổi)
+              (Vote lại)
             </button>
           </span>
         )}
@@ -143,6 +225,38 @@ export default function VoteWidget({ match }) {
           <span className="vote-total">{totalVotes.toLocaleString("vi-VN")} lượt bình chọn</span>
         )}
       </div>
+
+      {/* List of voters */}
+      {allVotes.length > 0 && (
+        <div className="voters-lists" style={{
+          marginTop: "14px",
+          borderTop: "1px dashed var(--border-subtle)",
+          paddingTop: "10px",
+          fontSize: "0.72rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px"
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+            <span style={{ color: "var(--accent-blue)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamA.name}:</span>
+            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+              {teamAVoters.length > 0 ? teamAVoters.join(", ") : "Chưa có"}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+            <span style={{ color: "var(--accent-purple)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>Hòa:</span>
+            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+              {drawVoters.length > 0 ? drawVoters.join(", ") : "Chưa có"}
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+            <span style={{ color: "var(--accent-green)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamB.name}:</span>
+            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+              {teamBVoters.length > 0 ? teamBVoters.join(", ") : "Chưa có"}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
