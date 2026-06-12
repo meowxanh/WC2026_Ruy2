@@ -79,12 +79,7 @@ const team = (t) => ({
 });
 
 const emptyVotes = () => ({ teamA: 0, draw: 0, teamB: 0, total: 0 });
-const randomVotes = () => {
-  const a = Math.floor(Math.random() * 300) + 50;
-  const d = Math.floor(Math.random() * 150) + 30;
-  const b = Math.floor(Math.random() * 300) + 50;
-  return { teamA: a, draw: d, teamB: b, total: a + d + b };
-};
+const randomVotes = () => emptyVotes();
 
 // ============================================================
 //  FULL GROUP STAGE SCHEDULE - 72 MATCHES
@@ -103,7 +98,7 @@ export const seedMatches = [
     group: "Bảng A", matchDate: new Date("2026-06-12T02:00:00+07:00"),
     venue: "Mexico City Stadium", status: "finished",
     result: "teamA", scoreA: 1, scoreB: 0,
-    votes: { teamA: 320, draw: 145, teamB: 135, total: 600 },
+    votes: emptyVotes(),
   },
   {
     id: "A2",
@@ -111,7 +106,7 @@ export const seedMatches = [
     group: "Bảng A", matchDate: new Date("2026-06-12T09:00:00+07:00"),
     venue: "Guadalajara Stadium", status: "live",
     result: null, scoreA: 0, scoreB: 0,
-    votes: { teamA: 210, draw: 130, teamB: 160, total: 500 },
+    votes: emptyVotes(),
   },
 
   // --- June 12 ---
