@@ -5,8 +5,12 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  getDocs,
+  doc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import { useAuth } from "../../contexts/AuthContext";
 
 const MEDAL_ICONS = ["🥇", "🥈", "🥉"];
 
@@ -28,9 +32,89 @@ const sampleLeaderboard = [
 ];
 
 export default function Leaderboard() {
+  const { isAdmin } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [usingLocal, setUsingLocal] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
+
+  const handleRecalculateLeaderboard = async () => {
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn tính toán lại toàn bộ điểm số của tất cả người chơi dựa trên các trận đấu đã kết thúc? Thao tác này sẽ đồng bộ lại BXH."
+      )
+    )
+      return;
+    setRecalculating(true);
+    try {
+      // 1. Get all matches
+      const matchesSnapshot = await getDocs(collection(db, "matches"));
+      const finishedMatches = {}; // matchId -> result
+      matchesSnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.status === "finished" && data.result) {
+          finishedMatches[doc.id] = data.result;
+        }
+      });
+
+      // 2. Get all votes
+      const votesSnapshot = await getDocs(collection(db, "votes"));
+
+      // 3. Get all users
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      const userScores = {}; // userId -> { correct: 0, total: 0 }
+
+      // Initialize all users with 0 points
+      usersSnapshot.docs.forEach((doc) => {
+        userScores[doc.id] = { correct: 0, total: 0 };
+      });
+
+      const batch = writeBatch(db);
+
+      // 4. Calculate scores based on votes
+      for (const voteDoc of votesSnapshot.docs) {
+        const voteData = voteDoc.data();
+        const matchResult = finishedMatches[voteData.matchId];
+
+        if (!userScores[voteData.userId]) {
+          userScores[voteData.userId] = { correct: 0, total: 0 };
+        }
+
+        if (matchResult) {
+          const isCorrect = voteData.vote === matchResult;
+          userScores[voteData.userId].total += 1;
+          if (isCorrect) {
+            userScores[voteData.userId].correct += 1;
+          }
+
+          if (voteData.isCorrect !== isCorrect) {
+            batch.update(voteDoc.ref, { isCorrect: isCorrect });
+          }
+        } else {
+          if (voteData.isCorrect !== null && voteData.isCorrect !== undefined) {
+            batch.update(voteDoc.ref, { isCorrect: null });
+          }
+        }
+      }
+
+      // 5. Update users in Firestore
+      for (const userId of Object.keys(userScores)) {
+        const userRef = doc(db, "users", userId);
+        batch.update(userRef, {
+          correctPredictions: userScores[userId].correct,
+          totalPredictions: userScores[userId].total,
+        });
+      }
+
+      await batch.commit();
+      alert("Cập nhật lại bảng xếp hạng thành công!");
+    } catch (err) {
+      console.error("Lỗi khi cập nhật BXH:", err);
+      alert("Lỗi khi cập nhật: " + err.message);
+    } finally {
+      setRecalculating(false);
+    }
+  };
 
   useEffect(() => {
     let unsubscribe;
@@ -90,6 +174,32 @@ export default function Leaderboard() {
           Top những người dự đoán chính xác nhất World Cup 2026
         </p>
       </div>
+
+      {isAdmin && !usingLocal && (
+        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+          <button
+            onClick={handleRecalculateLeaderboard}
+            disabled={recalculating}
+            className="login-btn"
+            style={{
+              background: "var(--gradient-primary)",
+              color: "#0a0e1a",
+              border: "none",
+              padding: "10px 20px",
+              fontSize: "0.85rem",
+              fontWeight: "600",
+              borderRadius: "var(--radius-md)",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              width: "auto",
+            }}
+          >
+            {recalculating ? "⏳ Đang tính toán..." : "🔄 Cập nhật lại điểm số"}
+          </button>
+        </div>
+      )}
 
       {usingLocal && (
         <div className="local-data-notice">
