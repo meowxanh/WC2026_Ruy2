@@ -1573,4 +1573,9 @@ a {
   user-select: none;
 }
 
+select option {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
 
