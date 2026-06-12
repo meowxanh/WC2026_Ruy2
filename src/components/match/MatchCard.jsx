@@ -180,6 +180,64 @@ export default function MatchCard({ match }) {
     }
   };
 
+  const handleResetVotes = async () => {
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn hủy toàn bộ lượt bình chọn của trận đấu này? Thao tác này sẽ xóa sạch tất cả bình chọn và cập nhật lại điểm số người chơi tương ứng."
+      )
+    )
+      return;
+    setSaving(true);
+    try {
+      const votesQuery = query(
+        collection(db, "votes"),
+        where("matchId", "==", match.id)
+      );
+      const votesSnapshot = await getDocs(votesQuery);
+
+      const batch = writeBatch(db);
+
+      if (!votesSnapshot.empty) {
+        for (const voteDoc of votesSnapshot.docs) {
+          const voteData = voteDoc.data();
+          const wasCorrect = voteData.isCorrect;
+
+          // Xóa tài liệu vote
+          batch.delete(voteDoc.ref);
+
+          // Nếu kết quả đã được tính điểm, hoàn tác điểm cho user
+          if (wasCorrect !== undefined && wasCorrect !== null) {
+            const userRef = doc(db, "users", voteData.userId);
+            batch.update(userRef, {
+              correctPredictions: increment(wasCorrect ? -1 : 0),
+              totalPredictions: increment(-1),
+            });
+          }
+        }
+      }
+
+      // Cập nhật lại votes của match về 0
+      const matchRef = doc(db, "matches", match.id);
+      batch.update(matchRef, {
+        votes: {
+          teamA: 0,
+          draw: 0,
+          teamB: 0,
+          total: 0,
+        },
+      });
+
+      await batch.commit();
+      alert("Đã reset toàn bộ bình chọn của trận đấu này thành công!");
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Lỗi khi reset bình chọn:", err);
+      alert("Lỗi khi reset bình chọn: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className={`match-card ${match.status === "live" ? "match-card--live" : ""} ${isEditing ? "match-card--editing" : ""}`}>
       {/* Header: Group + Status */}
@@ -267,6 +325,23 @@ export default function MatchCard({ match }) {
           </div>
 
           <div className="admin-panel-actions">
+            <button
+              type="button"
+              onClick={handleResetVotes}
+              disabled={saving}
+              className="login-btn"
+              style={{
+                background: "rgba(239, 68, 68, 0.15)",
+                color: "var(--accent-red)",
+                borderColor: "rgba(239, 68, 68, 0.3)",
+                marginRight: "auto",
+                flex: "none",
+                padding: "10px 14px",
+                fontSize: "0.85rem"
+              }}
+            >
+              🔄 Reset bình chọn
+            </button>
             <button
               type="button"
               onClick={() => {

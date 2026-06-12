@@ -11,8 +11,11 @@ export default function Header() {
       { path: "/", label: "Trận đấu", icon: "⚽" },
       { path: "/leaderboard", label: "Bảng xếp hạng", icon: "🏆" },
     ];
-    if (user && isAdmin) {
-      items.push({ path: "/admin/create-account", label: "Tạo tài khoản", icon: "👤" });
+    if (user) {
+      if (isAdmin) {
+        items.push({ path: "/admin/create-account", label: "Tạo tài khoản", icon: "👤" });
+      }
+      items.push({ path: "/change-password", label: "Đổi mật khẩu", icon: "🔑" });
     }
     return items;
   }, [user, isAdmin]);

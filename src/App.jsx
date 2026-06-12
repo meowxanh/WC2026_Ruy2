@@ -5,6 +5,7 @@ import Login from "./components/auth/Login";
 import MatchList from "./components/match/MatchList";
 import Leaderboard from "./components/leaderboard/Leaderboard";
 import AdminCreateAccount from "./components/admin/AdminCreateAccount";
+import ChangePassword from "./components/auth/ChangePassword";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -57,6 +58,7 @@ function AppRoutes() {
       >
         <Route path="/" element={<MatchList />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route
           path="/admin/create-account"
           element={
