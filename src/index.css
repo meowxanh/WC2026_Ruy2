@@ -1435,9 +1435,12 @@ a {
   }
 
   /* Leaderboard responsive */
-  .lb-th--rate,
-  .lb-cell--rate {
-    display: none;
+  .lb-row td {
+    padding: 10px 12px !important;
+    font-size: 0.85rem !important;
+  }
+  .lb-th {
+    padding: 10px 12px !important;
   }
 }
 
@@ -1485,11 +1488,46 @@ a {
     font-size: 0.72rem;
   }
 
-  .lb-th--total,
-  .lb-cell--total,
-  .lb-th--wrong,
-  .lb-cell--wrong {
-    display: none;
+  /* Leaderboard responsive mobile - keep all columns */
+  .lb-th,
+  .lb-row td {
+    padding: 8px 4px !important;
+    font-size: 0.76rem !important;
+  }
+  .lb-th--rank {
+    width: 40px !important;
+  }
+  .lb-medal {
+    font-size: 1.1rem !important;
+  }
+  .lb-cell--user {
+    gap: 6px !important;
+  }
+  .lb-avatar {
+    width: 22px !important;
+    height: 22px !important;
+    border-width: 1px !important;
+  }
+  .lb-name {
+    font-size: 0.74rem !important;
+    max-width: 65px !important;
+  }
+  .lb-rate-bar {
+    background: none !important;
+    border: none !important;
+    height: auto !important;
+    box-shadow: none !important;
+  }
+  .lb-rate-bar-fill {
+    display: none !important;
+  }
+  .lb-rate-text {
+    color: var(--accent-gold) !important;
+    text-shadow: none !important;
+    padding: 0 !important;
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    justify-content: center !important;
   }
 }
 
