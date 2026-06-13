@@ -130,13 +130,15 @@ export function useMatches() {
             where("matchId", "==", match.id)
           );
           const votesSnapshot = await getDocs(votesQuery);
+          const usersSnapshot = await getDocs(collection(db, "users"));
+          const votedUserIds = new Set();
+          const batch = writeBatch(db);
 
           if (!votesSnapshot.empty) {
-            const batch = writeBatch(db);
-
             for (const voteDoc of votesSnapshot.docs) {
               const voteData = voteDoc.data();
               const isCorrect = voteData.vote === result;
+              votedUserIds.add(voteData.userId);
 
               batch.update(voteDoc.ref, { isCorrect });
 
@@ -146,9 +148,20 @@ export function useMatches() {
                 totalPredictions: increment(1),
               });
             }
-            await batch.commit();
           }
-          console.log(`Auto-finished match ${match.id} and calculated points!`);
+
+          // Cộng 1 điểm sai (tăng totalPredictions) cho những người chưa bình chọn
+          for (const userDoc of usersSnapshot.docs) {
+            if (!votedUserIds.has(userDoc.id)) {
+              const userRef = doc(db, "users", userDoc.id);
+              batch.update(userRef, {
+                totalPredictions: increment(1),
+              });
+            }
+          }
+
+          await batch.commit();
+          console.log(`Auto-finished match ${match.id} and calculated points (including non-voters)!`);
         } catch (err) {
           console.error(`Error auto-finishing match ${match.id}:`, err);
         }

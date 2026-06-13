@@ -106,14 +106,16 @@ export default function MatchCard({ match }) {
       if (editStatus === "finished" && result) {
         const votesQuery = query(collection(db, "votes"), where("matchId", "==", match.id));
         const votesSnapshot = await getDocs(votesQuery);
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const votedUserIds = new Set();
+        const batch = writeBatch(db);
 
         if (!votesSnapshot.empty) {
-          const batch = writeBatch(db);
-
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
             const isCorrect = voteData.vote === result;
             const wasCorrect = voteData.isCorrect; // true, false, hoặc null
+            votedUserIds.add(voteData.userId);
 
             // Cập nhật kết quả dự đoán
             batch.update(voteDoc.ref, { isCorrect });
@@ -139,22 +141,36 @@ export default function MatchCard({ match }) {
               totalPredictions: increment(totalInc)
             });
           }
-
-          await batch.commit();
         }
+
+        // Đối với những người chưa bình chọn: cộng 1 điểm sai (nếu trận đấu trước đó chưa kết thúc)
+        if (match.status !== "finished") {
+          for (const userDoc of usersSnapshot.docs) {
+            if (!votedUserIds.has(userDoc.id)) {
+              const userRef = doc(db, "users", userDoc.id);
+              batch.update(userRef, {
+                totalPredictions: increment(1)
+              });
+            }
+          }
+        }
+
+        await batch.commit();
       }
 
       // 3. Nếu trạng thái trước đó là finished nhưng giờ hoàn tác về live/upcoming
       if (match.status === "finished" && editStatus !== "finished") {
         const votesQuery = query(collection(db, "votes"), where("matchId", "==", match.id));
         const votesSnapshot = await getDocs(votesQuery);
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const votedUserIds = new Set();
+        const batch = writeBatch(db);
 
         if (!votesSnapshot.empty) {
-          const batch = writeBatch(db);
-
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
             const wasCorrect = voteData.isCorrect;
+            votedUserIds.add(voteData.userId);
 
             if (wasCorrect !== undefined && wasCorrect !== null) {
               batch.update(voteDoc.ref, { isCorrect: null });
@@ -166,9 +182,19 @@ export default function MatchCard({ match }) {
               });
             }
           }
-
-          await batch.commit();
         }
+
+        // Đối với những người chưa bình chọn: hoàn tác điểm sai (trừ 1 ở totalPredictions)
+        for (const userDoc of usersSnapshot.docs) {
+          if (!votedUserIds.has(userDoc.id)) {
+            const userRef = doc(db, "users", userDoc.id);
+            batch.update(userRef, {
+              totalPredictions: increment(-1)
+            });
+          }
+        }
+
+        await batch.commit();
       }
 
       setIsEditing(false);

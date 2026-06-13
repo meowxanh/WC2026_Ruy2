@@ -50,10 +50,12 @@ export default function Leaderboard() {
       // 1. Get all matches
       const matchesSnapshot = await getDocs(collection(db, "matches"));
       const finishedMatches = {}; // matchId -> result
+      let finishedMatchesCount = 0;
       matchesSnapshot.docs.forEach((doc) => {
         const data = doc.data();
         if (data.status === "finished" && data.result) {
           finishedMatches[doc.id] = data.result;
+          finishedMatchesCount++;
         }
       });
 
@@ -64,9 +66,9 @@ export default function Leaderboard() {
       const usersSnapshot = await getDocs(collection(db, "users"));
       const userScores = {}; // userId -> { correct: 0, total: 0 }
 
-      // Initialize all users with 0 points
+      // Initialize all users with total predictions equal to finished matches count
       usersSnapshot.docs.forEach((doc) => {
-        userScores[doc.id] = { correct: 0, total: 0 };
+        userScores[doc.id] = { correct: 0, total: finishedMatchesCount };
       });
 
       const batch = writeBatch(db);
@@ -77,12 +79,12 @@ export default function Leaderboard() {
         const matchResult = finishedMatches[voteData.matchId];
 
         if (!userScores[voteData.userId]) {
-          userScores[voteData.userId] = { correct: 0, total: 0 };
+          userScores[voteData.userId] = { correct: 0, total: finishedMatchesCount };
         }
 
         if (matchResult) {
           const isCorrect = voteData.vote === matchResult;
-          userScores[voteData.userId].total += 1;
+          // No need to increment total since it is already initialized to finishedMatchesCount
           if (isCorrect) {
             userScores[voteData.userId].correct += 1;
           }
@@ -159,10 +161,12 @@ export default function Leaderboard() {
         try {
           const matchesSnapshot = await getDocs(collection(db, "matches"));
           const finishedMatches = {};
+          let finishedMatchesCount = 0;
           matchesSnapshot.docs.forEach((doc) => {
             const data = doc.data();
             if (data.status === "finished" && data.result) {
               finishedMatches[doc.id] = data.result;
+              finishedMatchesCount++;
             }
           });
 
@@ -171,7 +175,7 @@ export default function Leaderboard() {
           const userScores = {};
 
           usersSnapshot.docs.forEach((doc) => {
-            userScores[doc.id] = { correct: 0, total: 0 };
+            userScores[doc.id] = { correct: 0, total: finishedMatchesCount };
           });
 
           const batch = writeBatch(db);
@@ -182,12 +186,12 @@ export default function Leaderboard() {
             const matchResult = finishedMatches[voteData.matchId];
 
             if (!userScores[voteData.userId]) {
-              userScores[voteData.userId] = { correct: 0, total: 0 };
+              userScores[voteData.userId] = { correct: 0, total: finishedMatchesCount };
             }
 
             if (matchResult) {
               const isCorrect = voteData.vote === matchResult;
-              userScores[voteData.userId].total += 1;
+              // No need to increment total since it is already initialized to finishedMatchesCount
               if (isCorrect) {
                 userScores[voteData.userId].correct += 1;
               }

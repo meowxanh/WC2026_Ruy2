@@ -30,9 +30,8 @@ export default function VoteWidget({ match }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch users list for Admin delegated voting
+  // Fetch users list for listing voter details and delegated voting
   useEffect(() => {
-    if (!isAdmin) return;
     const fetchUsers = async () => {
       try {
         const snapshot = await getDocs(collection(db, "users"));
@@ -47,7 +46,7 @@ export default function VoteWidget({ match }) {
       }
     };
     fetchUsers();
-  }, [isAdmin]);
+  }, []);
 
   // Real-time listener for all votes on this match
   useEffect(() => {
@@ -108,6 +107,11 @@ export default function VoteWidget({ match }) {
   const teamAVoters = allVotes.filter(v => v.vote === "teamA").map(v => v.userName || "Ẩn danh");
   const drawVoters = allVotes.filter(v => v.vote === "draw").map(v => v.userName || "Ẩn danh");
   const teamBVoters = allVotes.filter(v => v.vote === "teamB").map(v => v.userName || "Ẩn danh");
+
+  const votedUserIds = new Set(allVotes.map(v => v.userId));
+  const nonVoters = usersList
+    .filter(u => !votedUserIds.has(u.uid))
+    .map(u => u.displayName);
 
   return (
     <div className="vote-widget">
@@ -226,8 +230,8 @@ export default function VoteWidget({ match }) {
         )}
       </div>
 
-      {/* List of voters */}
-      {allVotes.length > 0 && (
+      {/* List of voters and non-voters */}
+      {usersList.length > 0 && (
         <div className="voters-lists" style={{
           marginTop: "14px",
           borderTop: "1px dashed var(--border-subtle)",
@@ -237,22 +241,38 @@ export default function VoteWidget({ match }) {
           flexDirection: "column",
           gap: "6px"
         }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-            <span style={{ color: "var(--accent-blue)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamA.name}:</span>
-            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
-              {teamAVoters.length > 0 ? teamAVoters.join(", ") : "Chưa có"}
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-            <span style={{ color: "var(--accent-purple)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>Hòa:</span>
-            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
-              {drawVoters.length > 0 ? drawVoters.join(", ") : "Chưa có"}
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-            <span style={{ color: "var(--accent-green)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamB.name}:</span>
-            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
-              {teamBVoters.length > 0 ? teamBVoters.join(", ") : "Chưa có"}
+          {allVotes.length > 0 && (
+            <>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                <span style={{ color: "var(--accent-blue)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamA.name}:</span>
+                <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+                  {teamAVoters.length > 0 ? teamAVoters.join(", ") : "Chưa có"}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                <span style={{ color: "var(--accent-purple)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>Hòa:</span>
+                <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+                  {drawVoters.length > 0 ? drawVoters.join(", ") : "Chưa có"}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                <span style={{ color: "var(--accent-green)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamB.name}:</span>
+                <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+                  {teamBVoters.length > 0 ? teamBVoters.join(", ") : "Chưa có"}
+                </span>
+              </div>
+            </>
+          )}
+          <div style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "6px",
+            borderTop: allVotes.length > 0 ? "1px dashed rgba(255, 255, 255, 0.05)" : "none",
+            paddingTop: allVotes.length > 0 ? "6px" : "0"
+          }}>
+            <span style={{ color: "#f59e0b", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>Chưa vote:</span>
+            <span style={{ color: "var(--text-secondary)", wordBreak: "break-word", fontStyle: "italic" }}>
+              {nonVoters.length > 0 ? nonVoters.join(", ") : "Tất cả đã vote"}
             </span>
           </div>
         </div>
