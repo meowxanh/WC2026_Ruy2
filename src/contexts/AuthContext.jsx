@@ -6,9 +6,11 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  updatePassword,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db, googleProvider, githubProvider } from "../lib/firebase";
+import { doc, setDoc, getDoc, serverTimestamp, query, collection, where, getDocs, updateDoc } from "firebase/firestore";
+import { auth, db, googleProvider, githubProvider, SYSTEM_SHARED_AUTH_PASSWORD } from "../lib/firebase";
+
 
 const AuthContext = createContext(null);
 
@@ -88,7 +90,7 @@ export function AuthProvider({ children }) {
   const signInWithGithub = () => signInWithPopup(auth, githubProvider);
   
   const signUpWithEmail = async (email, password, displayName) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, SYSTEM_SHARED_AUTH_PASSWORD);
     await updateProfile(userCredential.user, { displayName });
     
     // Xác định email admin
@@ -107,6 +109,7 @@ export function AuthProvider({ children }) {
         email: email,
         photoURL: null,
         provider: "password",
+        password: password, // Save the actual password in Firestore
         correctPredictions: 0,
         totalPredictions: 0,
         createdAt: serverTimestamp(),
@@ -122,8 +125,58 @@ export function AuthProvider({ children }) {
     return userCredential.user;
   };
 
-  const loginWithEmail = (email, password) => 
-    signInWithEmailAndPassword(auth, email, password);
+  const loginWithEmail = async (email, password) => {
+    try {
+      const q = query(collection(db, "users"), where("email", "==", email.trim().toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      
+      let firestoreUserDoc = null;
+      querySnapshot.forEach(doc => {
+        firestoreUserDoc = doc.data();
+      });
+
+      if (firestoreUserDoc && firestoreUserDoc.password) {
+        // Virtual password flow
+        if (firestoreUserDoc.password !== password) {
+          const err = new Error("Wrong password");
+          err.code = "auth/wrong-password";
+          throw err;
+        }
+        // Log in with the system shared password
+        return await signInWithEmailAndPassword(auth, email, SYSTEM_SHARED_AUTH_PASSWORD);
+      } else if (firestoreUserDoc) {
+        // Standard account login flow - attempt login with entered password
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        // If login succeeds, auto-migrate this account to virtual password system
+        try {
+          const userRef = doc(db, "users", userCredential.user.uid);
+          await updateDoc(userRef, {
+            password: password
+          });
+          // Update the Firebase Auth password to SYSTEM_SHARED_AUTH_PASSWORD
+          await updatePassword(userCredential.user, SYSTEM_SHARED_AUTH_PASSWORD);
+          console.log(`Auto-migrated user ${email} to virtual password system.`);
+        } catch (migrationErr) {
+          console.warn("Auto-migration to virtual password failed:", migrationErr);
+        }
+        return userCredential;
+      }
+    } catch (err) {
+      // Re-throw Wrong Password or Invalid Credentials errors
+      if (
+        err.code === "auth/wrong-password" || 
+        err.code === "auth/invalid-credential" ||
+        err.message === "Wrong password"
+      ) {
+        throw err;
+      }
+      console.warn("Firestore lookup failed or standard fallback login error:", err);
+    }
+    // Final fallback to standard sign-in (e.g. if Firestore queries failed or user not in users collection)
+    return signInWithEmailAndPassword(auth, email, password);
+  };
+
 
   const logout = () => {
     setIsAdmin(false);

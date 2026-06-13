@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { useAuth } from "../../contexts/AuthContext";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../../lib/firebase";
 
 export default function ChangePassword() {
   const { user } = useAuth();
@@ -37,17 +39,34 @@ export default function ChangePassword() {
 
     setLoading(true);
     try {
-      // Xác thực lại tài khoản bằng mật khẩu hiện tại
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
+      // Kiểm tra xem tài khoản có trường mật khẩu ảo trong Firestore không
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const firestorePassword = userDocSnap.exists() ? userDocSnap.data().password : null;
 
-      // Tiến hành cập nhật mật khẩu mới
-      await updatePassword(user, newPassword);
+      if (firestorePassword) {
+        // Luồng mật khẩu ảo
+        if (currentPassword !== firestorePassword) {
+          setError("Mật khẩu hiện tại không chính xác.");
+          setLoading(false);
+          return;
+        }
+        // Cập nhật trường password trong Firestore
+        await updateDoc(userDocRef, {
+          password: newPassword
+        });
+      } else {
+        // Luồng Firebase Auth truyền thống (tài khoản cũ chưa chuyển đổi hoặc tài khoản Admin chính)
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, newPassword);
+      }
 
       setSuccess("🎉 Đổi mật khẩu thành công!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+
       
       // Chuyển hướng về trang chủ sau 2 giây
       setTimeout(() => {

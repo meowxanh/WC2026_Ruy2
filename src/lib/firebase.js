@@ -22,3 +22,6 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
+
+export const SYSTEM_SHARED_AUTH_PASSWORD = "system_constant_auth_password_wc2026_@#$";
+
