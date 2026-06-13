@@ -4,6 +4,8 @@ import { db } from "../../lib/firebase";
 import { useMatches } from "../../hooks/useMatches";
 import { seedMatches } from "../../data/seedMatches";
 import MatchCard from "./MatchCard";
+import { useAuth } from "../../contexts/AuthContext";
+import { useScoreSync } from "../../hooks/useScoreSync";
 
 const FILTER_TABS = [
   { key: "all", label: "Tất cả", icon: "📋" },
@@ -14,10 +16,14 @@ const FILTER_TABS = [
 
 export default function MatchList() {
   const { matches, loading, usingLocal } = useMatches();
+  const { isAdmin } = useAuth();
   const [activeFilter, setActiveFilter] = useState("all");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null); // "success" | "error"
   const [now, setNow] = useState(new Date());
+
+  // Kích hoạt tự động đồng bộ tỉ số chạy nền khi Admin online
+  useScoreSync(matches, isAdmin);
 
   // Cập nhật thời gian thực tế mỗi 15 giây để tự động chuyển trạng thái trận đấu
   useEffect(() => {

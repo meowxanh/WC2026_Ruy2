@@ -1,0 +1,22 @@
+{
+  "matches": [
+    {
+      "id": "A1",
+      "scoreA": 3,
+      "scoreB": 2,
+      "status": "finished"
+    },
+    {
+      "id": "A2",
+      "scoreA": 1,
+      "scoreB": 1,
+      "status": "live"
+    },
+    {
+      "id": "B1",
+      "scoreA": 0,
+      "scoreB": 2,
+      "status": "finished"
+    }
+  ]
+}

@@ -99,7 +99,8 @@ export default function MatchCard({ match }) {
         scoreA: sA,
         scoreB: sB,
         result: result,
-        forceUnlocked: editForceUnlocked
+        forceUnlocked: editForceUnlocked,
+        isManualScore: true // Đánh dấu cập nhật thủ công để tránh tự động đồng bộ đè lên
       });
 
       // 2. Nếu trạng thái chuyển sang kết thúc, xử lý điểm bình chọn cho người dùng
@@ -238,30 +239,83 @@ export default function MatchCard({ match }) {
     }
   };
 
+  const handleRestoreAutoSync = async () => {
+    if (!window.confirm("Bạn có muốn khôi phục đồng bộ tỉ số tự động từ nguồn hệ thống cho trận đấu này? Tỷ số hiện tại có thể bị ghi đè.")) return;
+    setSaving(true);
+    try {
+      const matchRef = doc(db, "matches", match.id);
+      await updateDoc(matchRef, {
+        isManualScore: false
+      });
+      alert("Đã khôi phục đồng bộ tự động!");
+    } catch (err) {
+      console.error("Lỗi khi khôi phục đồng bộ:", err);
+      alert("Lỗi khi khôi phục đồng bộ: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className={`match-card ${match.status === "live" ? "match-card--live" : ""} ${isEditing ? "match-card--editing" : ""}`}>
       {/* Header: Group + Status */}
       <div className="match-card-header">
         <span className="match-group">{match.group}</span>
-        <div className="match-header-actions">
+        <div className="match-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          {isAdmin && (
+            <>
+              {match.isManualScore ? (
+                <span className="badge" style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", color: "#f87171", fontSize: "0.7rem", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" }}>
+                  ✍️ Sửa thủ công
+                </span>
+              ) : (
+                <span className="badge" style={{ background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)", color: "#34d399", fontSize: "0.7rem", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold" }}>
+                  🔄 Tự động
+                </span>
+              )}
+            </>
+          )}
           {getStatusBadge()}
           {isAdmin && !isEditing && (
-            <button
-              onClick={() => {
-                const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
-                const hasEnded = new Date() >= new Date(kickoff.getTime() + 2 * 60 * 60 * 1000);
-                
-                setEditStatus(hasEnded ? "finished" : match.status);
-                setEditScoreA(match.scoreA ?? "");
-                setEditScoreB(match.scoreB ?? "");
-                setEditForceUnlocked(match.forceUnlocked || false);
-                setIsEditing(true);
-              }}
-              className="admin-edit-btn"
-              title="Cập nhật trận đấu"
-            >
-              🔧 Cập nhật
-            </button>
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              {match.isManualScore && (
+                <button
+                  type="button"
+                  onClick={handleRestoreAutoSync}
+                  className="admin-edit-btn"
+                  style={{
+                    background: "rgba(59, 130, 246, 0.1)",
+                    border: "1px solid rgba(59, 130, 246, 0.2)",
+                    color: "#60a5fa",
+                    padding: "4px 8px",
+                    fontSize: "0.75rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px"
+                  }}
+                  title="Cho phép đồng bộ tự động lại trận đấu này"
+                >
+                  🔄 Tự động
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
+                  const hasEnded = new Date() >= new Date(kickoff.getTime() + 2 * 60 * 60 * 1000);
+                  
+                  setEditStatus(hasEnded ? "finished" : match.status);
+                  setEditScoreA(match.scoreA ?? "");
+                  setEditScoreB(match.scoreB ?? "");
+                  setEditForceUnlocked(match.forceUnlocked || false);
+                  setIsEditing(true);
+                }}
+                className="admin-edit-btn"
+                title="Cập nhật trận đấu"
+              >
+                🔧 Cập nhật
+              </button>
+            </div>
           )}
         </div>
       </div>
