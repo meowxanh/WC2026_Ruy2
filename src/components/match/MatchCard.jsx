@@ -144,9 +144,23 @@ export default function MatchCard({ match }) {
         }
 
         // Đối với những người chưa bình chọn: cộng 1 điểm sai (nếu trận đấu trước đó chưa kết thúc)
-        if (match.status !== "finished") {
+        // Chỉ áp dụng từ trận Qatar vs Thụy Sĩ (2026-06-14T02:00:00+07:00)
+        // Và chỉ áp dụng cho người chơi (không tính Admin) có ngày đăng ký <= giờ kickoff
+        const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
+        const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
+        const isAfterThreshold = kickoff >= thresholdDate;
+
+        if (match.status !== "finished" && isAfterThreshold) {
           for (const userDoc of usersSnapshot.docs) {
-            if (!votedUserIds.has(userDoc.id)) {
+            const userData = userDoc.data();
+            const isPlayer = userData.isAdmin !== true;
+            const userCreatedAt = userData.createdAt?.toDate 
+              ? userData.createdAt.toDate() 
+              : (userData.createdAt ? new Date(userData.createdAt) : new Date(0));
+            
+            const wasCreatedBeforeKickoff = userCreatedAt <= kickoff;
+
+            if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
               const userRef = doc(db, "users", userDoc.id);
               batch.update(userRef, {
                 totalPredictions: increment(1)
@@ -185,12 +199,28 @@ export default function MatchCard({ match }) {
         }
 
         // Đối với những người chưa bình chọn: hoàn tác điểm sai (trừ 1 ở totalPredictions)
-        for (const userDoc of usersSnapshot.docs) {
-          if (!votedUserIds.has(userDoc.id)) {
-            const userRef = doc(db, "users", userDoc.id);
-            batch.update(userRef, {
-              totalPredictions: increment(-1)
-            });
+        // Chỉ áp dụng từ trận Qatar vs Thụy Sĩ (2026-06-14T02:00:00+07:00)
+        // Và chỉ áp dụng cho người chơi (không tính Admin) có ngày đăng ký <= giờ kickoff
+        const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
+        const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
+        const isAfterThreshold = kickoff >= thresholdDate;
+
+        if (isAfterThreshold) {
+          for (const userDoc of usersSnapshot.docs) {
+            const userData = userDoc.data();
+            const isPlayer = userData.isAdmin !== true;
+            const userCreatedAt = userData.createdAt?.toDate 
+              ? userData.createdAt.toDate() 
+              : (userData.createdAt ? new Date(userData.createdAt) : new Date(0));
+            
+            const wasCreatedBeforeKickoff = userCreatedAt <= kickoff;
+
+            if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
+              const userRef = doc(db, "users", userDoc.id);
+              batch.update(userRef, {
+                totalPredictions: increment(-1)
+              });
+            }
           }
         }
 

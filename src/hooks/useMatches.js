@@ -151,17 +151,32 @@ export function useMatches() {
           }
 
           // Cộng 1 điểm sai (tăng totalPredictions) cho những người chưa bình chọn
-          for (const userDoc of usersSnapshot.docs) {
-            if (!votedUserIds.has(userDoc.id)) {
-              const userRef = doc(db, "users", userDoc.id);
-              batch.update(userRef, {
-                totalPredictions: increment(1),
-              });
+          // Chỉ áp dụng từ trận Qatar vs Thụy Sĩ (2026-06-14T02:00:00+07:00)
+          // Và chỉ áp dụng cho người chơi (không tính Admin) có ngày đăng ký <= giờ kickoff
+          const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
+          const isAfterThreshold = kickoff >= thresholdDate;
+
+          if (isAfterThreshold) {
+            for (const userDoc of usersSnapshot.docs) {
+              const userData = userDoc.data();
+              const isPlayer = userData.isAdmin !== true;
+              const userCreatedAt = userData.createdAt?.toDate 
+                ? userData.createdAt.toDate() 
+                : (userData.createdAt ? new Date(userData.createdAt) : new Date(0));
+              
+              const wasCreatedBeforeKickoff = userCreatedAt <= kickoff;
+
+              if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
+                const userRef = doc(db, "users", userDoc.id);
+                batch.update(userRef, {
+                  totalPredictions: increment(1),
+                });
+              }
             }
           }
 
           await batch.commit();
-          console.log(`Auto-finished match ${match.id} and calculated points (including non-voters)!`);
+          console.log(`Auto-finished match ${match.id} and calculated points (applying threshold & reg date bounds)!`);
         } catch (err) {
           console.error(`Error auto-finishing match ${match.id}:`, err);
         }

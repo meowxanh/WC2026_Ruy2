@@ -49,13 +49,12 @@ export default function Leaderboard() {
     try {
       // 1. Get all matches
       const matchesSnapshot = await getDocs(collection(db, "matches"));
-      const finishedMatches = {}; // matchId -> result
-      let finishedMatchesCount = 0;
+      const finishedMatches = {}; // matchId -> { result, kickoff }
       matchesSnapshot.docs.forEach((doc) => {
         const data = doc.data();
         if (data.status === "finished" && data.result) {
-          finishedMatches[doc.id] = data.result;
-          finishedMatchesCount++;
+          const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
+          finishedMatches[doc.id] = { result: data.result, kickoff };
         }
       });
 
@@ -65,26 +64,39 @@ export default function Leaderboard() {
       // 3. Get all users
       const usersSnapshot = await getDocs(collection(db, "users"));
       const userScores = {}; // userId -> { correct: 0, total: 0 }
+      const userCreatedDates = {}; // userId -> Date
 
-      // Initialize all users with total predictions equal to finished matches count
+      // Initialize only player users (exclude admins)
       usersSnapshot.docs.forEach((doc) => {
-        userScores[doc.id] = { correct: 0, total: finishedMatchesCount };
+        const data = doc.data();
+        const isPlayer = data.isAdmin !== true;
+        if (isPlayer) {
+          userScores[doc.id] = { correct: 0, total: 0 };
+          userCreatedDates[doc.id] = data.createdAt?.toDate 
+            ? data.createdAt.toDate() 
+            : (data.createdAt ? new Date(data.createdAt) : new Date(0));
+        }
       });
 
       const batch = writeBatch(db);
+      const userVotesMap = {}; // userId -> Set of matchIds voted
 
-      // 4. Calculate scores based on votes
+      // 4. Calculate scores based on votes actually cast
       for (const voteDoc of votesSnapshot.docs) {
         const voteData = voteDoc.data();
-        const matchResult = finishedMatches[voteData.matchId];
+        const matchInfo = finishedMatches[voteData.matchId];
 
-        if (!userScores[voteData.userId]) {
-          userScores[voteData.userId] = { correct: 0, total: finishedMatchesCount };
+        // Skip if user is admin (they won't be in userScores)
+        if (!userScores[voteData.userId]) continue;
+
+        if (!userVotesMap[voteData.userId]) {
+          userVotesMap[voteData.userId] = new Set();
         }
+        userVotesMap[voteData.userId].add(voteData.matchId);
 
-        if (matchResult) {
-          const isCorrect = voteData.vote === matchResult;
-          // No need to increment total since it is already initialized to finishedMatchesCount
+        if (matchInfo) {
+          const isCorrect = voteData.vote === matchInfo.result;
+          userScores[voteData.userId].total += 1;
           if (isCorrect) {
             userScores[voteData.userId].correct += 1;
           }
@@ -99,13 +111,41 @@ export default function Leaderboard() {
         }
       }
 
-      // 5. Update users in Firestore
+      // Add non-voter penalties (+1 total) for finished matches starting from Qatar vs Switzerland (2026-06-14T02:00:00+07:00)
+      // and only where user was registered before the match kickoff
+      const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
       for (const userId of Object.keys(userScores)) {
+        const userCreated = userCreatedDates[userId];
+        const votedMatches = userVotesMap[userId] || new Set();
+
+        for (const matchId of Object.keys(finishedMatches)) {
+          if (!votedMatches.has(matchId)) {
+            const matchInfo = finishedMatches[matchId];
+            const isAfterThreshold = matchInfo.kickoff >= thresholdDate;
+            const wasCreatedBeforeKickoff = userCreated <= matchInfo.kickoff;
+
+            if (isAfterThreshold && wasCreatedBeforeKickoff) {
+              userScores[userId].total += 1;
+            }
+          }
+        }
+      }
+
+      // 5. Update users in Firestore (Reset admins to 0, update players)
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
         const userRef = doc(db, "users", userId);
-        batch.update(userRef, {
-          correctPredictions: userScores[userId].correct,
-          totalPredictions: userScores[userId].total,
-        });
+        if (userScores[userId]) {
+          batch.update(userRef, {
+            correctPredictions: userScores[userId].correct,
+            totalPredictions: userScores[userId].total,
+          });
+        } else {
+          batch.update(userRef, {
+            correctPredictions: 0,
+            totalPredictions: 0,
+          });
+        }
       }
 
       await batch.commit();
@@ -135,7 +175,7 @@ export default function Leaderboard() {
           } else {
             const data = snapshot.docs
               .map((doc) => ({ id: doc.id, ...doc.data() }))
-              .filter((u) => u.totalPredictions > 0);
+              .filter((u) => u.totalPredictions > 0 && u.isAdmin !== true);
             setUsers(data.length > 0 ? data : sampleLeaderboard);
             setUsingLocal(data.length === 0);
           }
@@ -160,38 +200,51 @@ export default function Leaderboard() {
       const autoRecalculate = async () => {
         try {
           const matchesSnapshot = await getDocs(collection(db, "matches"));
-          const finishedMatches = {};
-          let finishedMatchesCount = 0;
+          const finishedMatches = {}; // matchId -> { result, kickoff }
           matchesSnapshot.docs.forEach((doc) => {
             const data = doc.data();
             if (data.status === "finished" && data.result) {
-              finishedMatches[doc.id] = data.result;
-              finishedMatchesCount++;
+              const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
+              finishedMatches[doc.id] = { result: data.result, kickoff };
             }
           });
 
           const votesSnapshot = await getDocs(collection(db, "votes"));
           const usersSnapshot = await getDocs(collection(db, "users"));
           const userScores = {};
+          const userCreatedDates = {};
 
+          // Initialize only player users (exclude admins)
           usersSnapshot.docs.forEach((doc) => {
-            userScores[doc.id] = { correct: 0, total: finishedMatchesCount };
+            const data = doc.data();
+            const isPlayer = data.isAdmin !== true;
+            if (isPlayer) {
+              userScores[doc.id] = { correct: 0, total: 0 };
+              userCreatedDates[doc.id] = data.createdAt?.toDate 
+                ? data.createdAt.toDate() 
+                : (data.createdAt ? new Date(data.createdAt) : new Date(0));
+            }
           });
 
           const batch = writeBatch(db);
           let needsUpdate = false;
+          const userVotesMap = {}; // userId -> Set of matchIds voted
 
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
-            const matchResult = finishedMatches[voteData.matchId];
+            const matchInfo = finishedMatches[voteData.matchId];
 
-            if (!userScores[voteData.userId]) {
-              userScores[voteData.userId] = { correct: 0, total: finishedMatchesCount };
+            // Skip if user is admin
+            if (!userScores[voteData.userId]) continue;
+
+            if (!userVotesMap[voteData.userId]) {
+              userVotesMap[voteData.userId] = new Set();
             }
+            userVotesMap[voteData.userId].add(voteData.matchId);
 
-            if (matchResult) {
-              const isCorrect = voteData.vote === matchResult;
-              // No need to increment total since it is already initialized to finishedMatchesCount
+            if (matchInfo) {
+              const isCorrect = voteData.vote === matchInfo.result;
+              userScores[voteData.userId].total += 1;
               if (isCorrect) {
                 userScores[voteData.userId].correct += 1;
               }
@@ -208,14 +261,37 @@ export default function Leaderboard() {
             }
           }
 
+          // Add non-voter penalties
+          const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
+          for (const userId of Object.keys(userScores)) {
+            const userCreated = userCreatedDates[userId];
+            const votedMatches = userVotesMap[userId] || new Set();
+
+            for (const matchId of Object.keys(finishedMatches)) {
+              if (!votedMatches.has(matchId)) {
+                const matchInfo = finishedMatches[matchId];
+                const isAfterThreshold = matchInfo.kickoff >= thresholdDate;
+                const wasCreatedBeforeKickoff = userCreated <= matchInfo.kickoff;
+
+                if (isAfterThreshold && wasCreatedBeforeKickoff) {
+                  userScores[userId].total += 1;
+                }
+              }
+            }
+          }
+
+          // Update users in Firestore
           for (const userDoc of usersSnapshot.docs) {
+            const userId = userDoc.id;
             const userData = userDoc.data();
-            const computed = userScores[userDoc.id] || { correct: 0, total: 0 };
+            const computed = userScores[userId] || { correct: 0, total: 0 };
+            
             if (
               userData.correctPredictions !== computed.correct ||
               userData.totalPredictions !== computed.total
             ) {
-              batch.update(userDoc.ref, {
+              const userRef = doc(db, "users", userId);
+              batch.update(userRef, {
                 correctPredictions: computed.correct,
                 totalPredictions: computed.total,
               });

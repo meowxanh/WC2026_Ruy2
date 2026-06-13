@@ -35,11 +35,15 @@ export default function VoteWidget({ match }) {
     const fetchUsers = async () => {
       try {
         const snapshot = await getDocs(collection(db, "users"));
-        const list = snapshot.docs.map(doc => ({
-          uid: doc.id,
-          displayName: doc.data().displayName || doc.data().email || "Ẩn danh",
-          photoURL: doc.data().photoURL
-        })).sort((a, b) => a.displayName.localeCompare(b.displayName));
+        const list = snapshot.docs
+          .map(doc => ({
+            uid: doc.id,
+            displayName: doc.data().displayName || doc.data().email || "Ẩn danh",
+            photoURL: doc.data().photoURL,
+            isAdmin: doc.data().isAdmin
+          }))
+          .filter(u => u.isAdmin !== true)
+          .sort((a, b) => a.displayName.localeCompare(b.displayName));
         setUsersList(list);
       } catch (err) {
         console.error("Error fetching users:", err);
@@ -47,6 +51,18 @@ export default function VoteWidget({ match }) {
     };
     fetchUsers();
   }, []);
+
+  // Update selectedUserId for admins when usersList is loaded
+  useEffect(() => {
+    if (isAdmin && usersList.length > 0) {
+      setSelectedUserId(prev => {
+        if (!usersList.some(u => u.uid === prev)) {
+          return usersList[0].uid;
+        }
+        return prev;
+      });
+    }
+  }, [isAdmin, usersList]);
 
   // Real-time listener for all votes on this match
   useEffect(() => {
@@ -78,7 +94,7 @@ export default function VoteWidget({ match }) {
   const pctB = getPercent("teamB");
 
   const handleVote = async (vote) => {
-    if (!user || isLocked || voting) return;
+    if (!user || isLocked || voting || (isAdmin && selectedUserId === user.uid)) return;
     try {
       if (vote === userVote) {
         // Tích thêm 1 lần là hủy chọn
@@ -102,7 +118,7 @@ export default function VoteWidget({ match }) {
   }
 
   // Vô hiệu hóa nút bấm khi: Đã khóa, Đang gửi, Chưa đăng nhập (Không khóa khi đã vote để người dùng đổi hoặc hủy)
-  const isDisabled = isLocked || voting || !user;
+  const isDisabled = isLocked || voting || !user || (isAdmin && selectedUserId === user.uid);
 
   const teamAVoters = allVotes.filter(v => v.vote === "teamA").map(v => v.userName || "Ẩn danh");
   const drawVoters = allVotes.filter(v => v.vote === "draw").map(v => v.userName || "Ẩn danh");
@@ -133,9 +149,10 @@ export default function VoteWidget({ match }) {
               cursor: "pointer"
             }}
           >
-            <option value={user.uid}>Chính mình ({user.displayName || "Admin"})</option>
-            {usersList.filter(u => u.uid !== user.uid).map(u => (
-              <option key={u.uid} value={u.uid}>{u.displayName}</option>
+            {usersList.map(u => (
+              <option key={u.uid} value={u.uid} style={{ color: "#000", background: "#fff" }}>
+                {u.displayName}
+              </option>
             ))}
           </select>
         </div>
