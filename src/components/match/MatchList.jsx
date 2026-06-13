@@ -109,7 +109,7 @@ export default function MatchList() {
           <span className="title-icon">🏆</span>
         </h1>
         <p className="page-description">
-          Dự đoán kết quả và bình chọn cho đội tuyển yêu thích của bạn
+          Lưu ý: Hoạt động dự đoán và bình chọn chỉ nhằm mục đích giải trí, nghiêm cấm mọi hình thức cá cược.
         </p>
       </div>
 
