@@ -40,7 +40,8 @@ export default function VoteWidget({ match }) {
             uid: doc.id,
             displayName: doc.data().displayName || doc.data().email || "Ẩn danh",
             photoURL: doc.data().photoURL,
-            isAdmin: doc.data().isAdmin
+            isAdmin: doc.data().isAdmin,
+            createdAt: doc.data().createdAt
           }))
           .filter(u => u.isAdmin !== true)
           .sort((a, b) => a.displayName.localeCompare(b.displayName));
@@ -126,7 +127,13 @@ export default function VoteWidget({ match }) {
 
   const votedUserIds = new Set(allVotes.map(v => v.userId));
   const nonVoters = usersList
-    .filter(u => !votedUserIds.has(u.uid))
+    .filter(u => {
+      if (votedUserIds.has(u.uid)) return false;
+      const userCreatedAt = u.createdAt?.toDate 
+        ? u.createdAt.toDate() 
+        : (u.createdAt ? new Date(u.createdAt) : new Date(0));
+      return userCreatedAt <= kickoff;
+    })
     .map(u => u.displayName);
 
   return (
