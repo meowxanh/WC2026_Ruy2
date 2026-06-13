@@ -329,30 +329,30 @@ export default function AdminAddMatch() {
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
-                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-start" }}>
+                <div className="form-group" style={{ width: "110px", marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: "0.78rem" }}>Mã 3 chữ (ARG)</label>
                   <input
                     type="text"
                     value={teamACode}
                     onChange={(e) => setTeamACode(e.target.value)}
-                    placeholder="Mã Đội"
+                    placeholder="ARG"
                     required
                     className="form-input"
                     maxLength={5}
-                    style={{ padding: "6px 10px", fontSize: "0.82rem" }}
+                    style={{ padding: "6px 10px", fontSize: "0.82rem", textTransform: "uppercase" }}
                   />
                 </div>
-                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <div className="form-group" style={{ width: "110px", marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: "0.78rem" }}>Mã Cờ (ar)</label>
                   <input
                     type="text"
                     value={teamAFlag}
                     onChange={(e) => setTeamAFlag(e.target.value)}
-                    placeholder="Mã Cờ"
+                    placeholder="ar"
                     required
                     className="form-input"
-                    style={{ padding: "6px 10px", fontSize: "0.82rem" }}
+                    style={{ padding: "6px 10px", fontSize: "0.82rem", textTransform: "lowercase" }}
                   />
                 </div>
               </div>
@@ -406,30 +406,30 @@ export default function AdminAddMatch() {
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "10px" }}>
-                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-start" }}>
+                <div className="form-group" style={{ width: "110px", marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: "0.78rem" }}>Mã 3 chữ (BRA)</label>
                   <input
                     type="text"
                     value={teamBCode}
                     onChange={(e) => setTeamBCode(e.target.value)}
-                    placeholder="Mã Đội"
+                    placeholder="BRA"
                     required
                     className="form-input"
                     maxLength={5}
-                    style={{ padding: "6px 10px", fontSize: "0.82rem" }}
+                    style={{ padding: "6px 10px", fontSize: "0.82rem", textTransform: "uppercase" }}
                   />
                 </div>
-                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <div className="form-group" style={{ width: "110px", marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: "0.78rem" }}>Mã Cờ (br)</label>
                   <input
                     type="text"
                     value={teamBFlag}
                     onChange={(e) => setTeamBFlag(e.target.value)}
-                    placeholder="Mã Cờ"
+                    placeholder="br"
                     required
                     className="form-input"
-                    style={{ padding: "6px 10px", fontSize: "0.82rem" }}
+                    style={{ padding: "6px 10px", fontSize: "0.82rem", textTransform: "lowercase" }}
                   />
                 </div>
               </div>
