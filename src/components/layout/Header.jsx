@@ -14,6 +14,7 @@ export default function Header() {
     if (user) {
       if (isAdmin) {
         items.push({ path: "/admin/create-account", label: "Tạo tài khoản", icon: "👤" });
+        items.push({ path: "/admin/add-match", label: "Thêm trận đấu", icon: "➕" });
       }
       items.push({ path: "/change-password", label: "Đổi mật khẩu", icon: "🔑" });
     }

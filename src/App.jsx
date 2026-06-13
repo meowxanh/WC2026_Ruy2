@@ -5,6 +5,7 @@ import Login from "./components/auth/Login";
 import MatchList from "./components/match/MatchList";
 import Leaderboard from "./components/leaderboard/Leaderboard";
 import AdminCreateAccount from "./components/admin/AdminCreateAccount";
+import AdminAddMatch from "./components/admin/AdminAddMatch";
 import ChangePassword from "./components/auth/ChangePassword";
 
 function ProtectedRoute({ children }) {
@@ -64,6 +65,14 @@ function AppRoutes() {
           element={
             <AdminRoute>
               <AdminCreateAccount />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/add-match"
+          element={
+            <AdminRoute>
+              <AdminAddMatch />
             </AdminRoute>
           }
         />
