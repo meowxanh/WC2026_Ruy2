@@ -378,6 +378,40 @@ export default function Leaderboard() {
             </tr>
           </thead>
           <tbody>
+            {users.length > 0 && (() => {
+              const totalCorrect = users.reduce((sum, u) => sum + (u.correctPredictions || 0), 0);
+              const totalWrong = users.reduce((sum, u) => sum + ((u.totalPredictions || 0) - (u.correctPredictions || 0)), 0);
+              const totalPredictions = users.reduce((sum, u) => sum + (u.totalPredictions || 0), 0);
+              const averageRate = totalPredictions > 0 ? Math.round((totalCorrect / totalPredictions) * 100) : 0;
+              
+              return (
+                <tr className="lb-row lb-row--total-sum">
+                  <td className="lb-cell lb-cell--rank" style={{ color: "var(--accent-gold)" }}>Σ</td>
+                  <td className="lb-cell lb-cell--user">
+                    <div className="lb-avatar lb-avatar--placeholder">📊</div>
+                    <span className="lb-name" style={{ color: "var(--accent-gold)" }}>Tổng cộng</span>
+                  </td>
+                  <td className="lb-cell lb-cell--correct" style={{ color: "var(--accent-green)", fontWeight: "bold" }}>
+                    {totalCorrect}
+                  </td>
+                  <td className="lb-cell lb-cell--wrong" style={{ color: "var(--accent-red)", fontWeight: "bold" }}>
+                    {totalWrong}
+                  </td>
+                  <td className="lb-cell lb-cell--total" style={{ fontWeight: "bold" }}>
+                    {totalPredictions}
+                  </td>
+                  <td className="lb-cell lb-cell--rate">
+                    <div className="lb-rate-bar">
+                      <div
+                        className="lb-rate-bar-fill"
+                        style={{ width: `${averageRate}%`, background: "var(--gradient-primary)" }}
+                      ></div>
+                      <span className="lb-rate-text" style={{ fontWeight: "bold" }}>{averageRate}%</span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })()}
             {users.map((user, index) => {
               const rate =
                 user.totalPredictions > 0

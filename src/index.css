@@ -1698,4 +1698,42 @@ select option {
   background-color: #ffffff !important;
 }
 
+/* Leaderboard Total Row styling */
+.lb-row--total-sum td {
+  background: rgba(245, 158, 11, 0.08) !important;
+  border-top: 1px solid rgba(245, 158, 11, 0.2) !important;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2) !important;
+  font-weight: 700;
+}
+.lb-row--total-sum td:first-child {
+  border-left: 1px solid rgba(245, 158, 11, 0.2) !important;
+}
+.lb-row--total-sum td:last-child {
+  border-right: 1px solid rgba(245, 158, 11, 0.2) !important;
+}
+.lb-row--total-sum:hover td {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+.lb-row--total-sum:hover td:first-child {
+  border-left-color: rgba(245, 158, 11, 0.4) !important;
+}
+.lb-row--total-sum:hover td:last-child {
+  border-right-color: rgba(245, 158, 11, 0.4) !important;
+}
+.lb-avatar--placeholder {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border: 2px dashed var(--accent-gold) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1rem;
+}
+@media (max-width: 480px) {
+  .lb-avatar--placeholder {
+    font-size: 0.7rem !important;
+    border-width: 1px !important;
+  }
+}
+
 
