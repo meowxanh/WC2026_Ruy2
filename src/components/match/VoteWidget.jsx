@@ -12,7 +12,7 @@ import { useVote } from "../../hooks/useVotes";
  */
 export default function VoteWidget({ match }) {
   const { user, isAdmin } = useAuth();
-  const [selectedUserId, setSelectedUserId] = useState(user?.uid);
+  const [selectedUserId, setSelectedUserId] = useState(isAdmin ? "" : user?.uid);
   const [usersList, setUsersList] = useState([]);
   const [allVotes, setAllVotes] = useState([]);
 
@@ -58,7 +58,7 @@ export default function VoteWidget({ match }) {
     if (isAdmin && usersList.length > 0) {
       setSelectedUserId(prev => {
         if (!usersList.some(u => u.uid === prev)) {
-          return usersList[0].uid;
+          return "";
         }
         return prev;
       });
@@ -95,7 +95,7 @@ export default function VoteWidget({ match }) {
   const pctB = getPercent("teamB");
 
   const handleVote = async (vote) => {
-    if (!user || isLocked || voting || (isAdmin && selectedUserId === user.uid)) return;
+    if (!user || isLocked || voting || (isAdmin && (!selectedUserId || selectedUserId === user.uid))) return;
     try {
       if (vote === userVote) {
         // Tích thêm 1 lần là hủy chọn
@@ -119,7 +119,7 @@ export default function VoteWidget({ match }) {
   }
 
   // Vô hiệu hóa nút bấm khi: Đã khóa, Đang gửi, Chưa đăng nhập (Không khóa khi đã vote để người dùng đổi hoặc hủy)
-  const isDisabled = isLocked || voting || !user || (isAdmin && selectedUserId === user.uid);
+  const isDisabled = isLocked || voting || !user || (isAdmin && (!selectedUserId || selectedUserId === user.uid));
 
   const teamAVoters = allVotes.filter(v => v.vote === "teamA").map(v => v.userName || "Ẩn danh");
   const drawVoters = allVotes.filter(v => v.vote === "draw").map(v => v.userName || "Ẩn danh");
@@ -156,6 +156,9 @@ export default function VoteWidget({ match }) {
               cursor: "pointer"
             }}
           >
+            <option value="" style={{ color: "#000", background: "#fff" }}>
+              -- Chọn người chơi (None) --
+            </option>
             {usersList.map(u => (
               <option key={u.uid} value={u.uid} style={{ color: "#000", background: "#fff" }}>
                 {u.displayName}
