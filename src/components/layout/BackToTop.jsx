@@ -18,12 +18,10 @@ export default function BackToTop() {
     });
   };
 
-  if (!visible) return null;
-
   return (
     <button
       onClick={scrollToTop}
-      className="back-to-top-btn"
+      className={`back-to-top-btn ${visible ? "back-to-top-btn--visible" : ""}`}
       title="Lên đầu trang"
       aria-label="Lên đầu trang"
     >
