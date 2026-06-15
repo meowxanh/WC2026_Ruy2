@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { seedMatches } from "../data/seedMatches";
+import { useAuth } from "../contexts/AuthContext";
 
 const FIRESTORE_TIMEOUT_MS = 3000;
 
@@ -25,6 +26,9 @@ export function useMatches() {
   const [loading, setLoading] = useState(true);
   const [usingLocal, setUsingLocal] = useState(false);
   const resolved = useRef(false);
+
+  const auth = useAuth();
+  const isAdmin = auth?.isAdmin;
 
   useEffect(() => {
     let unsubscribe;
@@ -185,6 +189,111 @@ export function useMatches() {
 
     checkAndFinishMatches();
   }, [matches, loading, usingLocal]);
+
+  // Real-time API scores synchronization effect (for Admin clients only)
+  useEffect(() => {
+    if (loading || usingLocal || !isAdmin) return;
+
+    const fetchLiveScores = async () => {
+      try {
+        const response = await fetch("/live-scores.json");
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (!data || !Array.isArray(data.matches)) return;
+
+        for (const liveMatch of data.matches) {
+          const dbMatch = matches.find(m => m.id === liveMatch.id);
+          if (!dbMatch) continue;
+
+          const statusChanged = liveMatch.status && dbMatch.status !== liveMatch.status;
+          const scoreAChanged = liveMatch.scoreA !== undefined && dbMatch.scoreA !== liveMatch.scoreA;
+          const scoreBChanged = liveMatch.scoreB !== undefined && dbMatch.scoreB !== liveMatch.scoreB;
+
+          if (statusChanged || scoreAChanged || scoreBChanged) {
+            const matchRef = doc(db, "matches", liveMatch.id);
+
+            if (liveMatch.status === "finished" && dbMatch.status !== "finished") {
+              console.log(`Live Score Sync: Match ${liveMatch.id} finished. Calculating points...`);
+              const sA = liveMatch.scoreA !== undefined ? liveMatch.scoreA : (dbMatch.scoreA || 0);
+              const sB = liveMatch.scoreB !== undefined ? liveMatch.scoreB : (dbMatch.scoreB || 0);
+              let result = "draw";
+              if (sA > sB) result = "teamA";
+              else if (sA < sB) result = "teamB";
+
+              const batch = writeBatch(db);
+              batch.update(matchRef, {
+                status: "finished",
+                scoreA: sA,
+                scoreB: sB,
+                result: result
+              });
+
+              const votesQuery = query(collection(db, "votes"), where("matchId", "==", liveMatch.id));
+              const votesSnapshot = await getDocs(votesQuery);
+              const usersSnapshot = await getDocs(collection(db, "users"));
+              const votedUserIds = new Set();
+
+              if (!votesSnapshot.empty) {
+                for (const voteDoc of votesSnapshot.docs) {
+                  const voteData = voteDoc.data();
+                  const isCorrect = voteData.vote === result;
+                  votedUserIds.add(voteData.userId);
+
+                  batch.update(voteDoc.ref, { isCorrect });
+
+                  const userRef = doc(db, "users", voteData.userId);
+                  batch.update(userRef, {
+                    correctPredictions: increment(isCorrect ? 1 : 0),
+                    totalPredictions: increment(1),
+                  });
+                }
+              }
+
+              const kickoff = dbMatch.matchDate instanceof Date ? dbMatch.matchDate : new Date(dbMatch.matchDate);
+              const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
+              const isAfterThreshold = kickoff >= thresholdDate;
+
+              if (isAfterThreshold) {
+                for (const userDoc of usersSnapshot.docs) {
+                  const userData = userDoc.data();
+                  const isPlayer = userData.isAdmin !== true;
+                  const userCreatedAt = userData.createdAt?.toDate 
+                    ? userData.createdAt.toDate() 
+                    : (userData.createdAt ? new Date(userData.createdAt) : new Date(0));
+                  
+                  const wasCreatedBeforeKickoff = userCreatedAt <= kickoff;
+
+                  if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
+                    const userRef = doc(db, "users", userDoc.id);
+                    batch.update(userRef, {
+                      totalPredictions: increment(1),
+                    });
+                  }
+                }
+              }
+
+              await batch.commit();
+              console.log(`Live Score Sync: Match ${liveMatch.id} finished and predictions synced.`);
+            } else {
+              console.log(`Live Score Sync: Updating live scores for match ${liveMatch.id}`);
+              const updates = {};
+              if (statusChanged) updates.status = liveMatch.status;
+              if (scoreAChanged) updates.scoreA = liveMatch.scoreA;
+              if (scoreBChanged) updates.scoreB = liveMatch.scoreB;
+              await updateDoc(matchRef, updates);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Live score API sync warning:", err.message);
+      }
+    };
+
+    fetchLiveScores();
+    const timer = setInterval(fetchLiveScores, 30000);
+    return () => clearInterval(timer);
+  }, [matches, loading, usingLocal, isAdmin]);
 
   return { matches, loading, usingLocal };
 }

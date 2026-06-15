@@ -1,0 +1,16 @@
+{
+  "matches": [
+    {
+      "id": "A1",
+      "status": "finished",
+      "scoreA": 1,
+      "scoreB": 0
+    },
+    {
+      "id": "A2",
+      "status": "live",
+      "scoreA": 0,
+      "scoreB": 0
+    }
+  ]
+}
