@@ -5,11 +5,23 @@ import { useMatches } from "../../hooks/useMatches";
 import { seedMatches } from "../../data/seedMatches";
 import MatchCard from "./MatchCard";
 
+const getVNFormatDateString = (d) => {
+  const options = { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" };
+  const formatter = new Intl.DateTimeFormat("en-US", options);
+  const parts = formatter.formatToParts(d);
+  const year = parts.find((p) => p.type === "year").value;
+  const month = parts.find((p) => p.type === "month").value;
+  const day = parts.find((p) => p.type === "day").value;
+  return `${year}-${month}-${day}`;
+};
+
 const FILTER_TABS = [
-  { key: "all", label: "Tất cả", icon: "📋" },
+  { key: "today", label: "Hôm nay", icon: "☀️" },
+  { key: "tomorrow", label: "Ngày mai", icon: "🌙" },
   { key: "upcoming", label: "Sắp diễn ra", icon: "📅" },
   { key: "live", label: "Đang diễn ra", icon: "🔴" },
   { key: "finished", label: "Đã kết thúc", icon: "✅" },
+  { key: "all", label: "Tất cả", icon: "📋" },
 ];
 
 export default function MatchList() {
@@ -55,18 +67,52 @@ export default function MatchList() {
     });
   }, [matches, now]);
 
+  const { todayStr, tomorrowStr } = useMemo(() => {
+    const todayStr = getVNFormatDateString(now);
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowStr = getVNFormatDateString(tomorrow);
+    return { todayStr, tomorrowStr };
+  }, [now]);
+
   const filteredMatches = useMemo(() => {
     if (activeFilter === "all") return processedMatches;
+    if (activeFilter === "today") {
+      return processedMatches.filter((m) => {
+        const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
+        return getVNFormatDateString(kickoff) === todayStr;
+      });
+    }
+    if (activeFilter === "tomorrow") {
+      return processedMatches.filter((m) => {
+        const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
+        return getVNFormatDateString(kickoff) === tomorrowStr;
+      });
+    }
     return processedMatches.filter((m) => m.status === activeFilter);
-  }, [processedMatches, activeFilter]);
+  }, [processedMatches, activeFilter, todayStr, tomorrowStr]);
 
   const counts = useMemo(() => {
-    const c = { all: processedMatches.length, upcoming: 0, live: 0, finished: 0 };
+    const c = {
+      all: processedMatches.length,
+      today: 0,
+      tomorrow: 0,
+      upcoming: 0,
+      live: 0,
+      finished: 0,
+    };
     processedMatches.forEach((m) => {
       if (c[m.status] !== undefined) c[m.status]++;
+      
+      const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
+      const matchDateStr = getVNFormatDateString(kickoff);
+      if (matchDateStr === todayStr) {
+        c.today++;
+      } else if (matchDateStr === tomorrowStr) {
+        c.tomorrow++;
+      }
     });
     return c;
-  }, [processedMatches]);
+  }, [processedMatches, todayStr, tomorrowStr]);
 
   // Đẩy toàn bộ seed data lên Firestore
   const handleSeedFirestore = useCallback(async () => {
