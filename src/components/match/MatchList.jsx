@@ -14,7 +14,7 @@ const FILTER_TABS = [
 
 export default function MatchList() {
   const { matches, loading, usingLocal } = useMatches();
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState("upcoming");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null); // "success" | "error"
   const [now, setNow] = useState(new Date());
