@@ -1736,4 +1736,124 @@ select option {
   }
 }
 
+/* ==========================================================
+   LIGHT THEME OVERRIDES
+   ========================================================== */
+.light-theme {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: rgba(255, 255, 255, 1);
+  --bg-glass: rgba(0, 0, 0, 0.03);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-glow: rgba(245, 158, 11, 0.4);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --gradient-hero: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.95));
+}
+
+/* Light Theme Component Overrides */
+.light-theme .header {
+  background: rgba(248, 250, 252, 0.85);
+}
+
+.light-theme .theme-toggle-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-primary);
+}
+
+.light-theme .theme-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light-theme .login-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .lb-row td {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .lb-row td:first-child {
+  border-left-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .lb-row td:last-child {
+  border-right-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+.light-theme .lb-row:hover td {
+  background: rgba(241, 245, 249, 0.9) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.light-theme .admin-checkbox-group {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.light-theme .admin-vote-select select {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+.light-theme .vote-bar {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light-theme .voters-lists {
+  border-top-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light-theme .voters-lists div {
+  border-top-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* ==========================================================
+   BACK TO TOP BUTTON
+   ========================================================== */
+.back-to-top-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #0a0e1a;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), var(--shadow-glow);
+  z-index: 1000;
+  transition: transform var(--transition-base), opacity var(--transition-base);
+  animation: fade-in var(--transition-fast) ease both;
+}
+
+.back-to-top-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.light-theme .back-to-top-btn {
+  color: #ffffff;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
