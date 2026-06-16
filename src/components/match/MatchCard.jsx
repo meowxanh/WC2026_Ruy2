@@ -21,22 +21,32 @@ export default function MatchCard({ match }) {
   const [saving, setSaving] = useState(false);
 
   const formatDate = (date) => {
-    const d = date instanceof Date ? date : new Date(date);
-    return d.toLocaleDateString("vi-VN", {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    try {
+      const d = date instanceof Date ? date : new Date(date);
+      if (isNaN(d.getTime())) return "Chưa xác định";
+      return d.toLocaleDateString("vi-VN", {
+        weekday: "short",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return "Chưa xác định";
+    }
   };
 
   const formatTime = (date) => {
-    const d = date instanceof Date ? date : new Date(date);
-    return d.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+    try {
+      const d = date instanceof Date ? date : new Date(date);
+      if (isNaN(d.getTime())) return "--:--";
+      return d.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    } catch {
+      return "--:--";
+    }
   };
 
   const getStatusBadge = () => {

@@ -82,7 +82,8 @@ export default function VoteWidget({ match }) {
   }, [match.id]);
 
   const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
-  const isLocked = (match.status !== "upcoming" || now >= kickoff) && !match.forceUnlocked;
+  const isKickoffValid = kickoff && !isNaN(kickoff.getTime());
+  const isLocked = (match.status !== "upcoming" || (isKickoffValid && now >= kickoff)) && !match.forceUnlocked;
   const totalVotes = match.votes?.total || 0;
 
   const getPercent = (key) => {
@@ -132,7 +133,7 @@ export default function VoteWidget({ match }) {
       const userCreatedAt = u.createdAt?.toDate 
         ? u.createdAt.toDate() 
         : (u.createdAt ? new Date(u.createdAt) : new Date(0));
-      return userCreatedAt <= kickoff;
+      return isKickoffValid && userCreatedAt <= kickoff;
     })
     .map(u => u.displayName);
 

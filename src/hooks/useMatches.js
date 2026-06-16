@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import {
   collection,
   onSnapshot,
@@ -104,6 +104,7 @@ export function useMatches() {
       const now = new Date();
       const matchesToFinish = matches.filter((m) => {
         const kickoff = m.matchDate instanceof Date ? m.matchDate : new Date(m.matchDate);
+        if (isNaN(kickoff.getTime())) return false;
         const twoHours = 2 * 60 * 60 * 1000;
         const hasEnded = now >= new Date(kickoff.getTime() + twoHours);
         return (
@@ -349,6 +350,7 @@ export function useMatches() {
       if (m.status === "finished") return m;
 
       const kickoff = m.matchDate instanceof Date ? m.matchDate : new Date(m.matchDate);
+      if (isNaN(kickoff.getTime())) return m;
       let calculatedStatus = m.status;
 
       if (now < kickoff) {
