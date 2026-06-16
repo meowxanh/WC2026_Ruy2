@@ -389,5 +389,5 @@ export function useMatches() {
     });
   }, [matches, now]);
 
-  return { matches: processedMatches, loading, usingLocal };
+  return { matches: processedMatches, loading, usingLocal, setMatches };
 }

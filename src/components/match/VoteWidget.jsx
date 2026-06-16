@@ -10,7 +10,7 @@ import { useVote } from "../../hooks/useVotes";
  * - Progress bar realtime hiển thị tỷ lệ %
  * - Khóa bình chọn khi trận đã diễn ra
  */
-export default function VoteWidget({ match }) {
+export default function VoteWidget({ match, usingLocal = false }) {
   const { user, isAdmin } = useAuth();
   const [selectedUserId, setSelectedUserId] = useState(isAdmin ? "" : user?.uid);
   const [usersList, setUsersList] = useState([]);
@@ -18,7 +18,8 @@ export default function VoteWidget({ match }) {
 
   const { userVote, loading, voting, castVote, cancelVote } = useVote(
     match.id,
-    selectedUserId
+    selectedUserId,
+    usingLocal
   );
 
   const [now, setNow] = useState(new Date());
@@ -32,6 +33,13 @@ export default function VoteWidget({ match }) {
 
   // Fetch users list for listing voter details and delegated voting
   useEffect(() => {
+    if (usingLocal) {
+      setUsersList([
+        { uid: "user1", displayName: "Người chơi mẫu 1", photoURL: null, isAdmin: false, createdAt: new Date() },
+        { uid: "user2", displayName: "Người chơi mẫu 2", photoURL: null, isAdmin: false, createdAt: new Date() },
+      ]);
+      return;
+    }
     const fetchUsers = async () => {
       try {
         const snapshot = await getDocs(collection(db, "users"));
@@ -67,7 +75,10 @@ export default function VoteWidget({ match }) {
 
   // Real-time listener for all votes on this match
   useEffect(() => {
-    if (!match.id) return;
+    if (usingLocal || !match.id) {
+      setAllVotes([]);
+      return;
+    }
     const q = query(collection(db, "votes"), where("matchId", "==", match.id));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list = snapshot.docs.map(doc => ({

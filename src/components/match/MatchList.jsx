@@ -34,7 +34,7 @@ const FILTER_TABS = [
 ];
 
 export default function MatchList() {
-  const { matches, loading, usingLocal } = useMatches();
+  const { matches, loading, usingLocal, setMatches } = useMatches();
   const [activeFilter, setActiveFilter] = useState("upcoming");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null); // "success" | "error"
@@ -188,7 +188,7 @@ export default function MatchList() {
       ) : (
         <div className="match-grid">
           {filteredMatches.map((match) => (
-            <MatchCard key={match.id} match={match} />
+            <MatchCard key={match.id} match={match} usingLocal={usingLocal} setMatches={setMatches} />
           ))}
         </div>
       )}

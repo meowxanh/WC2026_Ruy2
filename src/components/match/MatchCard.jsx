@@ -9,7 +9,7 @@ import VoteWidget from "./VoteWidget";
  * Bao gồm: Cờ quốc gia, tên đội, tỷ số, thời gian, và VoteWidget.
  * Tích hợp bảng điều khiển cập nhật kết quả cho Admin.
  */
-export default function MatchCard({ match }) {
+export default function MatchCard({ match, usingLocal, setMatches }) {
   const { isAdmin } = useAuth();
   
   // Admin Edit states
@@ -99,6 +99,35 @@ export default function MatchCard({ match }) {
         sA = null;
         sB = null;
         result = null;
+      }
+
+      if (usingLocal) {
+        if (setMatches) {
+          setMatches((currentMatches) =>
+            currentMatches.map((m) => {
+              if (m.id !== match.id) return m;
+
+              let calculatedResult = null;
+              if (editStatus === "finished") {
+                if (sA > sB) calculatedResult = "teamA";
+                else if (sA < sB) calculatedResult = "teamB";
+                else calculatedResult = "draw";
+              }
+
+              return {
+                ...m,
+                status: editStatus,
+                scoreA: sA,
+                scoreB: sB,
+                result: calculatedResult,
+                forceUnlocked: editForceUnlocked,
+              };
+            })
+          );
+        }
+        setIsEditing(false);
+        setSaving(false);
+        return;
       }
 
       const matchRef = doc(db, "matches", match.id);
@@ -255,6 +284,29 @@ export default function MatchCard({ match }) {
       return;
     setSaving(true);
     try {
+      if (usingLocal) {
+        if (setMatches) {
+          setMatches((currentMatches) =>
+            currentMatches.map((m) => {
+              if (m.id !== match.id) return m;
+              return {
+                ...m,
+                votes: {
+                  teamA: 0,
+                  draw: 0,
+                  teamB: 0,
+                  total: 0,
+                },
+              };
+            })
+          );
+        }
+        setIsEditing(false);
+        setSaving(false);
+        alert("Đã reset toàn bộ bình chọn của trận đấu này thành công!");
+        return;
+      }
+
       const votesQuery = query(
         collection(db, "votes"),
         where("matchId", "==", match.id)
@@ -479,7 +531,7 @@ export default function MatchCard({ match }) {
           </div>
 
           {/* Vote widget */}
-          <VoteWidget match={match} />
+          <VoteWidget match={match} usingLocal={usingLocal} />
         </>
       )}
     </div>

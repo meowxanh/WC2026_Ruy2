@@ -17,7 +17,7 @@ import { db } from "../lib/firebase";
  * - Thực hiện vote bằng Firestore Transaction (atomic)
  * - Trả về trạng thái vote hiện tại
  */
-export function useVote(matchId, userId) {
+export function useVote(matchId, userId, usingLocal = false) {
   const [userVote, setUserVote] = useState(null); // "teamA" | "draw" | "teamB" | null
   const [voteDocId, setVoteDocId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +28,14 @@ export function useVote(matchId, userId) {
     if (!matchId || !userId) {
       setUserVote(null);
       setVoteDocId(null);
+      setLoading(false);
+      return;
+    }
+
+    if (usingLocal) {
+      const localVote = localStorage.getItem(`vote_${matchId}_${userId}`);
+      setUserVote(localVote);
+      setVoteDocId(localVote ? `local_${matchId}_${userId}` : null);
       setLoading(false);
       return;
     }
@@ -55,7 +63,7 @@ export function useVote(matchId, userId) {
     };
 
     checkExistingVote();
-  }, [matchId, userId]);
+  }, [matchId, userId, usingLocal]);
 
   // Thực hiện vote bằng Transaction
   const castVote = useCallback(
@@ -65,6 +73,14 @@ export function useVote(matchId, userId) {
 
       setVoting(true);
       try {
+        if (usingLocal) {
+          localStorage.setItem(`vote_${matchId}_${userId}`, vote);
+          setUserVote(vote);
+          setVoteDocId(`local_${matchId}_${userId}`);
+          setVoting(false);
+          return;
+        }
+
         const matchRef = doc(db, "matches", matchId);
         const isUpdate = !!voteDocId;
         const voteRef = isUpdate
@@ -133,7 +149,7 @@ export function useVote(matchId, userId) {
         setVoting(false);
       }
     },
-    [matchId, userId, userVote, voteDocId, voting]
+    [matchId, userId, userVote, voteDocId, voting, usingLocal]
   );
 
   const cancelVote = useCallback(
@@ -142,6 +158,14 @@ export function useVote(matchId, userId) {
 
       setVoting(true);
       try {
+        if (usingLocal) {
+          localStorage.removeItem(`vote_${matchId}_${userId}`);
+          setUserVote(null);
+          setVoteDocId(null);
+          setVoting(false);
+          return;
+        }
+
         const matchRef = doc(db, "matches", matchId);
         const voteRef = doc(db, "votes", voteDocId);
 
@@ -186,7 +210,7 @@ export function useVote(matchId, userId) {
         setVoting(false);
       }
     },
-    [matchId, userId, userVote, voteDocId, voting]
+    [matchId, userId, userVote, voteDocId, voting, usingLocal]
   );
 
   return { userVote, loading, voting, castVote, cancelVote };
