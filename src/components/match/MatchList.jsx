@@ -39,34 +39,6 @@ export default function MatchList() {
     return () => clearInterval(timer);
   }, []);
 
-  const processedMatches = useMemo(() => {
-    return matches.map((m) => {
-      // Nếu trạng thái trong DB đã là finished, giữ nguyên
-      if (m.status === "finished") return m;
-
-      const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
-      let calculatedStatus = m.status;
-
-      if (now < kickoff) {
-        calculatedStatus = "upcoming";
-      } else {
-        const diffMs = now - kickoff;
-        const diffMinutes = diffMs / (1000 * 60);
-
-        if (diffMinutes < 120) { // Đang đá (LIVE) trong 120 phút kể từ kickoff
-          calculatedStatus = "live";
-        } else { // Sau 120 phút coi như đã kết thúc
-          calculatedStatus = "finished";
-        }
-      }
-
-      return {
-        ...m,
-        status: calculatedStatus,
-      };
-    });
-  }, [matches, now]);
-
   const { todayStr, tomorrowStr } = useMemo(() => {
     const todayStr = getVNFormatDateString(now);
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -75,32 +47,32 @@ export default function MatchList() {
   }, [now]);
 
   const filteredMatches = useMemo(() => {
-    if (activeFilter === "all") return processedMatches;
+    if (activeFilter === "all") return matches;
     if (activeFilter === "today") {
-      return processedMatches.filter((m) => {
+      return matches.filter((m) => {
         const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
         return getVNFormatDateString(kickoff) === todayStr;
       });
     }
     if (activeFilter === "tomorrow") {
-      return processedMatches.filter((m) => {
+      return matches.filter((m) => {
         const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
         return getVNFormatDateString(kickoff) === tomorrowStr;
       });
     }
-    return processedMatches.filter((m) => m.status === activeFilter);
-  }, [processedMatches, activeFilter, todayStr, tomorrowStr]);
+    return matches.filter((m) => m.status === activeFilter);
+  }, [matches, activeFilter, todayStr, tomorrowStr]);
 
   const counts = useMemo(() => {
     const c = {
-      all: processedMatches.length,
+      all: matches.length,
       today: 0,
       tomorrow: 0,
       upcoming: 0,
       live: 0,
       finished: 0,
     };
-    processedMatches.forEach((m) => {
+    matches.forEach((m) => {
       if (c[m.status] !== undefined) c[m.status]++;
       
       const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
@@ -112,7 +84,7 @@ export default function MatchList() {
       }
     });
     return c;
-  }, [processedMatches, todayStr, tomorrowStr]);
+  }, [matches, todayStr, tomorrowStr]);
 
   // Đẩy toàn bộ seed data lên Firestore
   const handleSeedFirestore = useCallback(async () => {

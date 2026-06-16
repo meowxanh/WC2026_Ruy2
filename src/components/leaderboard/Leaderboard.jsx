@@ -1,23 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   collection,
-  query,
-  orderBy,
-  limit,
   onSnapshot,
   getDocs,
   doc,
   writeBatch,
+  query,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useAuth } from "../../contexts/AuthContext";
+import { useMatches } from "../../hooks/useMatches";
 
 const MEDAL_ICONS = ["🥇", "🥈", "🥉"];
 
 /**
  * Bảng xếp hạng top 20 người dự đoán đúng nhiều nhất.
- * Sử dụng Firestore real-time listener.
- * Fallback dữ liệu mẫu khi chưa có Firestore.
+ * Tính toán động client-side để hiển thị tuyệt đối chính xác 100%, bảo vệ Firestore quota.
  */
 
 const sampleLeaderboard = [
@@ -33,11 +31,126 @@ const sampleLeaderboard = [
 
 export default function Leaderboard() {
   const { isAdmin } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [usingLocal, setUsingLocal] = useState(false);
+  const { matches: hookMatches, loading: loadingMatches, usingLocal: matchesUsingLocal } = useMatches();
+  const [dbUsers, setDbUsers] = useState([]);
+  const [dbVotes, setDbVotes] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingVotes, setLoadingVotes] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
 
+  // 1. Listen to users collection in real-time
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "users"),
+      (snapshot) => {
+        const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setDbUsers(list);
+        setLoadingUsers(false);
+      },
+      () => {
+        setDbUsers([]);
+        setLoadingUsers(false);
+      }
+    );
+    return unsubscribe;
+  }, []);
+
+  // 2. Listen to votes collection in real-time
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "votes"),
+      (snapshot) => {
+        const list = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setDbVotes(list);
+        setLoadingVotes(false);
+      },
+      () => {
+        setDbVotes([]);
+        setLoadingVotes(false);
+      }
+    );
+    return unsubscribe;
+  }, []);
+
+  const usingLocal = matchesUsingLocal || dbUsers.length === 0;
+  const loading = loadingMatches || loadingUsers || loadingVotes;
+
+  // 3. Calculate leaderboard dynamically client-side in real-time
+  const users = useMemo(() => {
+    if (usingLocal) {
+      return sampleLeaderboard;
+    }
+
+    // A. Map finished matches and results dynamically
+    const finishedMatches = {};
+    hookMatches.forEach((m) => {
+      // Matches are already processed by useMatches hook, so status & result are dynamic
+      if (m.status === "finished" && m.result) {
+        const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
+        finishedMatches[m.id] = { result: m.result, kickoff };
+      }
+    });
+
+    // B. Group votes by user
+    const userVotesMap = {};
+    dbVotes.forEach((v) => {
+      if (!userVotesMap[v.userId]) {
+        userVotesMap[v.userId] = {};
+      }
+      userVotesMap[v.userId][v.matchId] = v.vote;
+    });
+
+    // C. Calculate scores (only players, exclude admins)
+    const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
+    
+    const playersList = dbUsers
+      .filter((u) => u.isAdmin !== true)
+      .map((u) => {
+        let correct = 0;
+        let total = 0;
+        const votesCast = userVotesMap[u.id] || {};
+        const userCreated = u.createdAt?.toDate 
+          ? u.createdAt.toDate() 
+          : (u.createdAt ? new Date(u.createdAt) : new Date(0));
+
+        Object.keys(finishedMatches).forEach((matchId) => {
+          const matchInfo = finishedMatches[matchId];
+          const voted = votesCast[matchId];
+
+          if (voted) {
+            total += 1;
+            if (voted === matchInfo.result) {
+              correct += 1;
+            }
+          } else {
+            // Check if they are eligible for non-voter penalty
+            const isAfterThreshold = matchInfo.kickoff >= thresholdDate;
+            const wasCreatedBeforeKickoff = userCreated <= matchInfo.kickoff;
+
+            if (isAfterThreshold && wasCreatedBeforeKickoff) {
+              total += 1;
+            }
+          }
+        });
+
+        return {
+          ...u,
+          correctPredictions: correct,
+          totalPredictions: total,
+        };
+      })
+      .filter((u) => u.totalPredictions > 0);
+
+    // Sort: most correct predictions first, then highest win rate (totalPredictions asc)
+    return playersList.sort((a, b) => {
+      if (b.correctPredictions !== a.correctPredictions) {
+        return b.correctPredictions - a.correctPredictions;
+      }
+      return a.totalPredictions - b.totalPredictions;
+    });
+  }, [dbUsers, hookMatches, dbVotes, usingLocal]);
+
+  // Recalculate button remains for Admin to push manual updates to Firestore, with safety checks for quota exceeded
   const handleRecalculateLeaderboard = async () => {
     if (
       !window.confirm(
@@ -47,30 +160,38 @@ export default function Leaderboard() {
       return;
     setRecalculating(true);
     try {
-      // 1. Get all matches
       const matchesSnapshot = await getDocs(collection(db, "matches"));
-      const finishedMatches = {}; // matchId -> { result, kickoff }
+      const finishedMatches = {};
       matchesSnapshot.docs.forEach((doc) => {
         const data = doc.data();
-        if (data.status === "finished" && data.result) {
-          const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
-          finishedMatches[doc.id] = { result: data.result, kickoff };
+        const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
+        const twoHours = 2 * 60 * 60 * 1000;
+        const hasEnded = new Date() >= new Date(kickoff.getTime() + twoHours);
+        const isFinished = data.status === "finished" || (hasEnded && data.scoreA !== null && data.scoreB !== null && data.scoreA !== undefined && data.scoreB !== undefined);
+
+        if (isFinished) {
+          let result = data.result;
+          if (!result && data.scoreA !== null && data.scoreB !== null) {
+            const sA = parseInt(data.scoreA);
+            const sB = parseInt(data.scoreB);
+            if (sA > sB) result = "teamA";
+            else if (sA < sB) result = "teamB";
+            else result = "draw";
+          }
+          if (result) {
+            finishedMatches[doc.id] = { result, kickoff };
+          }
         }
       });
 
-      // 2. Get all votes
       const votesSnapshot = await getDocs(collection(db, "votes"));
-
-      // 3. Get all users
       const usersSnapshot = await getDocs(collection(db, "users"));
-      const userScores = {}; // userId -> { correct: 0, total: 0 }
-      const userCreatedDates = {}; // userId -> Date
+      const userScores = {};
+      const userCreatedDates = {};
 
-      // Initialize only player users (exclude admins)
       usersSnapshot.docs.forEach((doc) => {
         const data = doc.data();
-        const isPlayer = data.isAdmin !== true;
-        if (isPlayer) {
+        if (data.isAdmin !== true) {
           userScores[doc.id] = { correct: 0, total: 0 };
           userCreatedDates[doc.id] = data.createdAt?.toDate 
             ? data.createdAt.toDate() 
@@ -79,14 +200,12 @@ export default function Leaderboard() {
       });
 
       const batch = writeBatch(db);
-      const userVotesMap = {}; // userId -> Set of matchIds voted
+      const userVotesMap = {};
 
-      // 4. Calculate scores based on votes actually cast
       for (const voteDoc of votesSnapshot.docs) {
         const voteData = voteDoc.data();
         const matchInfo = finishedMatches[voteData.matchId];
 
-        // Skip if user is admin (they won't be in userScores)
         if (!userScores[voteData.userId]) continue;
 
         if (!userVotesMap[voteData.userId]) {
@@ -100,19 +219,16 @@ export default function Leaderboard() {
           if (isCorrect) {
             userScores[voteData.userId].correct += 1;
           }
-
-          if (voteData.isCorrect !== isCorrect) {
-            batch.update(voteDoc.ref, { isCorrect: isCorrect });
+          if (voteDoc.data().isCorrect !== isCorrect) {
+            batch.update(voteDoc.ref, { isCorrect });
           }
         } else {
-          if (voteData.isCorrect !== null && voteData.isCorrect !== undefined) {
+          if (voteDoc.data().isCorrect !== null && voteDoc.data().isCorrect !== undefined) {
             batch.update(voteDoc.ref, { isCorrect: null });
           }
         }
       }
 
-      // Add non-voter penalties (+1 total) for finished matches starting from Qatar vs Switzerland (2026-06-14T02:00:00+07:00)
-      // and only where user was registered before the match kickoff
       const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
       for (const userId of Object.keys(userScores)) {
         const userCreated = userCreatedDates[userId];
@@ -131,7 +247,6 @@ export default function Leaderboard() {
         }
       }
 
-      // 5. Update users in Firestore (Reset admins to 0, update players)
       for (const userDoc of usersSnapshot.docs) {
         const userId = userDoc.id;
         const userRef = doc(db, "users", userId);
@@ -152,164 +267,15 @@ export default function Leaderboard() {
       alert("Cập nhật lại bảng xếp hạng thành công!");
     } catch (err) {
       console.error("Lỗi khi cập nhật BXH:", err);
-      alert("Lỗi khi cập nhật: " + err.message);
+      if (err.message.includes("quota") || err.message.includes("EXHAUSTED")) {
+        alert("Hiện tại giới hạn ghi của cơ sở dữ liệu Firebase (Spark Plan) đã đạt ngưỡng tối đa hôm nay, dữ liệu trên Firestore tạm thời chưa được lưu. Tuy nhiên, bảng xếp hạng trên trình duyệt của bạn đã được hệ thống tự động tính toán động và hiển thị chính xác hoàn toàn!");
+      } else {
+        alert("Lỗi khi cập nhật: " + err.message);
+      }
     } finally {
       setRecalculating(false);
     }
   };
-
-  useEffect(() => {
-    let unsubscribe;
-    try {
-      const q = query(
-        collection(db, "users"),
-        orderBy("correctPredictions", "desc"),
-        limit(20)
-      );
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          if (snapshot.empty) {
-            setUsers(sampleLeaderboard);
-            setUsingLocal(true);
-          } else {
-            const data = snapshot.docs
-              .map((doc) => ({ id: doc.id, ...doc.data() }))
-              .filter((u) => u.totalPredictions > 0 && u.isAdmin !== true);
-            setUsers(data.length > 0 ? data : sampleLeaderboard);
-            setUsingLocal(data.length === 0);
-          }
-          setLoading(false);
-        },
-        () => {
-          setUsers(sampleLeaderboard);
-          setUsingLocal(true);
-          setLoading(false);
-        }
-      );
-    } catch {
-      setUsers(sampleLeaderboard);
-      setUsingLocal(true);
-      setLoading(false);
-    }
-    return () => unsubscribe?.();
-  }, []);
-
-  useEffect(() => {
-    if (isAdmin && !usingLocal && users.length > 0) {
-      const autoRecalculate = async () => {
-        try {
-          const matchesSnapshot = await getDocs(collection(db, "matches"));
-          const finishedMatches = {}; // matchId -> { result, kickoff }
-          matchesSnapshot.docs.forEach((doc) => {
-            const data = doc.data();
-            if (data.status === "finished" && data.result) {
-              const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
-              finishedMatches[doc.id] = { result: data.result, kickoff };
-            }
-          });
-
-          const votesSnapshot = await getDocs(collection(db, "votes"));
-          const usersSnapshot = await getDocs(collection(db, "users"));
-          const userScores = {};
-          const userCreatedDates = {};
-
-          // Initialize only player users (exclude admins)
-          usersSnapshot.docs.forEach((doc) => {
-            const data = doc.data();
-            const isPlayer = data.isAdmin !== true;
-            if (isPlayer) {
-              userScores[doc.id] = { correct: 0, total: 0 };
-              userCreatedDates[doc.id] = data.createdAt?.toDate 
-                ? data.createdAt.toDate() 
-                : (data.createdAt ? new Date(data.createdAt) : new Date(0));
-            }
-          });
-
-          const batch = writeBatch(db);
-          let needsUpdate = false;
-          const userVotesMap = {}; // userId -> Set of matchIds voted
-
-          for (const voteDoc of votesSnapshot.docs) {
-            const voteData = voteDoc.data();
-            const matchInfo = finishedMatches[voteData.matchId];
-
-            // Skip if user is admin
-            if (!userScores[voteData.userId]) continue;
-
-            if (!userVotesMap[voteData.userId]) {
-              userVotesMap[voteData.userId] = new Set();
-            }
-            userVotesMap[voteData.userId].add(voteData.matchId);
-
-            if (matchInfo) {
-              const isCorrect = voteData.vote === matchInfo.result;
-              userScores[voteData.userId].total += 1;
-              if (isCorrect) {
-                userScores[voteData.userId].correct += 1;
-              }
-
-              if (voteData.isCorrect !== isCorrect) {
-                batch.update(voteDoc.ref, { isCorrect: isCorrect });
-                needsUpdate = true;
-              }
-            } else {
-              if (voteData.isCorrect !== null && voteData.isCorrect !== undefined) {
-                batch.update(voteDoc.ref, { isCorrect: null });
-                needsUpdate = true;
-              }
-            }
-          }
-
-          // Add non-voter penalties
-          const thresholdDate = new Date("2026-06-14T02:00:00+07:00");
-          for (const userId of Object.keys(userScores)) {
-            const userCreated = userCreatedDates[userId];
-            const votedMatches = userVotesMap[userId] || new Set();
-
-            for (const matchId of Object.keys(finishedMatches)) {
-              if (!votedMatches.has(matchId)) {
-                const matchInfo = finishedMatches[matchId];
-                const isAfterThreshold = matchInfo.kickoff >= thresholdDate;
-                const wasCreatedBeforeKickoff = userCreated <= matchInfo.kickoff;
-
-                if (isAfterThreshold && wasCreatedBeforeKickoff) {
-                  userScores[userId].total += 1;
-                }
-              }
-            }
-          }
-
-          // Update users in Firestore
-          for (const userDoc of usersSnapshot.docs) {
-            const userId = userDoc.id;
-            const userData = userDoc.data();
-            const computed = userScores[userId] || { correct: 0, total: 0 };
-            
-            if (
-              userData.correctPredictions !== computed.correct ||
-              userData.totalPredictions !== computed.total
-            ) {
-              const userRef = doc(db, "users", userId);
-              batch.update(userRef, {
-                correctPredictions: computed.correct,
-                totalPredictions: computed.total,
-              });
-              needsUpdate = true;
-            }
-          }
-
-          if (needsUpdate) {
-            await batch.commit();
-            console.log("Leaderboard scores automatically synced and updated!");
-          }
-        } catch (err) {
-          console.error("Error auto-recalculating leaderboard:", err);
-        }
-      };
-      autoRecalculate();
-    }
-  }, [isAdmin, usingLocal, users.length]);
 
   if (loading) {
     return (

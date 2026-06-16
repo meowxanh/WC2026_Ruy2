@@ -25,10 +25,19 @@ export function useMatches() {
   const [matches, setMatches] = useState(seedMatches);
   const [loading, setLoading] = useState(true);
   const [usingLocal, setUsingLocal] = useState(false);
+  const [now, setNow] = useState(new Date());
   const resolved = useRef(false);
 
   const auth = useAuth();
   const isAdmin = auth?.isAdmin;
+
+  // Cập nhật thời gian thực tế mỗi 15 giây
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(new Date());
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     let unsubscribe;
@@ -335,5 +344,48 @@ export function useMatches() {
     return () => clearInterval(timer);
   }, [matches, loading, usingLocal, isAdmin]);
 
-  return { matches, loading, usingLocal };
+  const processedMatches = useMemo(() => {
+    return matches.map((m) => {
+      if (m.status === "finished") return m;
+
+      const kickoff = m.matchDate instanceof Date ? m.matchDate : new Date(m.matchDate);
+      let calculatedStatus = m.status;
+
+      if (now < kickoff) {
+        calculatedStatus = "upcoming";
+      } else {
+        const diffMs = now - kickoff;
+        const diffMinutes = diffMs / (1000 * 60);
+
+        if (diffMinutes < 120) {
+          calculatedStatus = "live";
+        } else {
+          calculatedStatus = "finished";
+        }
+      }
+
+      let calculatedResult = m.result;
+      if (
+        calculatedStatus === "finished" &&
+        m.scoreA !== null &&
+        m.scoreB !== null &&
+        m.scoreA !== undefined &&
+        m.scoreB !== undefined
+      ) {
+        const sA = parseInt(m.scoreA);
+        const sB = parseInt(m.scoreB);
+        if (sA > sB) calculatedResult = "teamA";
+        else if (sA < sB) calculatedResult = "teamB";
+        else calculatedResult = "draw";
+      }
+
+      return {
+        ...m,
+        status: calculatedStatus,
+        result: calculatedResult,
+      };
+    });
+  }, [matches, now]);
+
+  return { matches: processedMatches, loading, usingLocal };
 }
