@@ -6,22 +6,13 @@ import { seedMatches } from "../../data/seedMatches";
 import MatchCard from "./MatchCard";
 
 const getVNFormatDateString = (d) => {
-  try {
-    if (!d || !(d instanceof Date) || isNaN(d.getTime())) {
-      return "";
-    }
-    const options = { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" };
-    const formatter = new Intl.DateTimeFormat("en-US", options);
-    const parts = formatter.formatToParts(d);
-    const year = parts.find((p) => p.type === "year")?.value;
-    const month = parts.find((p) => p.type === "month")?.value;
-    const day = parts.find((p) => p.type === "day")?.value;
-    if (!year || !month || !day) return "";
-    return `${year}-${month}-${day}`;
-  } catch (err) {
-    console.error("Error formatting date:", err);
-    return "";
-  }
+  const options = { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" };
+  const formatter = new Intl.DateTimeFormat("en-US", options);
+  const parts = formatter.formatToParts(d);
+  const year = parts.find((p) => p.type === "year").value;
+  const month = parts.find((p) => p.type === "month").value;
+  const day = parts.find((p) => p.type === "day").value;
+  return `${year}-${month}-${day}`;
 };
 
 const FILTER_TABS = [
@@ -34,7 +25,7 @@ const FILTER_TABS = [
 ];
 
 export default function MatchList() {
-  const { matches, loading, usingLocal, setMatches } = useMatches();
+  const { matches, loading, usingLocal } = useMatches();
   const [activeFilter, setActiveFilter] = useState("upcoming");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null); // "success" | "error"
@@ -48,6 +39,34 @@ export default function MatchList() {
     return () => clearInterval(timer);
   }, []);
 
+  const processedMatches = useMemo(() => {
+    return matches.map((m) => {
+      // Nếu trạng thái trong DB đã là finished, giữ nguyên
+      if (m.status === "finished") return m;
+
+      const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
+      let calculatedStatus = m.status;
+
+      if (now < kickoff) {
+        calculatedStatus = "upcoming";
+      } else {
+        const diffMs = now - kickoff;
+        const diffMinutes = diffMs / (1000 * 60);
+
+        if (diffMinutes < 120) { // Đang đá (LIVE) trong 120 phút kể từ kickoff
+          calculatedStatus = "live";
+        } else { // Sau 120 phút coi như đã kết thúc
+          calculatedStatus = "finished";
+        }
+      }
+
+      return {
+        ...m,
+        status: calculatedStatus,
+      };
+    });
+  }, [matches, now]);
+
   const { todayStr, tomorrowStr } = useMemo(() => {
     const todayStr = getVNFormatDateString(now);
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -56,32 +75,32 @@ export default function MatchList() {
   }, [now]);
 
   const filteredMatches = useMemo(() => {
-    if (activeFilter === "all") return matches;
+    if (activeFilter === "all") return processedMatches;
     if (activeFilter === "today") {
-      return matches.filter((m) => {
+      return processedMatches.filter((m) => {
         const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
         return getVNFormatDateString(kickoff) === todayStr;
       });
     }
     if (activeFilter === "tomorrow") {
-      return matches.filter((m) => {
+      return processedMatches.filter((m) => {
         const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
         return getVNFormatDateString(kickoff) === tomorrowStr;
       });
     }
-    return matches.filter((m) => m.status === activeFilter);
-  }, [matches, activeFilter, todayStr, tomorrowStr]);
+    return processedMatches.filter((m) => m.status === activeFilter);
+  }, [processedMatches, activeFilter, todayStr, tomorrowStr]);
 
   const counts = useMemo(() => {
     const c = {
-      all: matches.length,
+      all: processedMatches.length,
       today: 0,
       tomorrow: 0,
       upcoming: 0,
       live: 0,
       finished: 0,
     };
-    matches.forEach((m) => {
+    processedMatches.forEach((m) => {
       if (c[m.status] !== undefined) c[m.status]++;
       
       const kickoff = m.matchDate?.toDate ? m.matchDate.toDate() : new Date(m.matchDate);
@@ -93,7 +112,7 @@ export default function MatchList() {
       }
     });
     return c;
-  }, [matches, todayStr, tomorrowStr]);
+  }, [processedMatches, todayStr, tomorrowStr]);
 
   // Đẩy toàn bộ seed data lên Firestore
   const handleSeedFirestore = useCallback(async () => {
@@ -188,7 +207,7 @@ export default function MatchList() {
       ) : (
         <div className="match-grid">
           {filteredMatches.map((match) => (
-            <MatchCard key={match.id} match={match} usingLocal={usingLocal} setMatches={setMatches} />
+            <MatchCard key={match.id} match={match} />
           ))}
         </div>
       )}

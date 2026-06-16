@@ -10,7 +10,7 @@ import { useVote } from "../../hooks/useVotes";
  * - Progress bar realtime hiển thị tỷ lệ %
  * - Khóa bình chọn khi trận đã diễn ra
  */
-export default function VoteWidget({ match, usingLocal = false }) {
+export default function VoteWidget({ match }) {
   const { user, isAdmin } = useAuth();
   const [selectedUserId, setSelectedUserId] = useState(isAdmin ? "" : user?.uid);
   const [usersList, setUsersList] = useState([]);
@@ -18,8 +18,7 @@ export default function VoteWidget({ match, usingLocal = false }) {
 
   const { userVote, loading, voting, castVote, cancelVote } = useVote(
     match.id,
-    selectedUserId,
-    usingLocal
+    selectedUserId
   );
 
   const [now, setNow] = useState(new Date());
@@ -33,13 +32,6 @@ export default function VoteWidget({ match, usingLocal = false }) {
 
   // Fetch users list for listing voter details and delegated voting
   useEffect(() => {
-    if (usingLocal) {
-      setUsersList([
-        { uid: "user1", displayName: "Người chơi mẫu 1", photoURL: null, isAdmin: false, createdAt: new Date() },
-        { uid: "user2", displayName: "Người chơi mẫu 2", photoURL: null, isAdmin: false, createdAt: new Date() },
-      ]);
-      return;
-    }
     const fetchUsers = async () => {
       try {
         const snapshot = await getDocs(collection(db, "users"));
@@ -75,10 +67,7 @@ export default function VoteWidget({ match, usingLocal = false }) {
 
   // Real-time listener for all votes on this match
   useEffect(() => {
-    if (usingLocal || !match.id) {
-      setAllVotes([]);
-      return;
-    }
+    if (!match.id) return;
     const q = query(collection(db, "votes"), where("matchId", "==", match.id));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list = snapshot.docs.map(doc => ({
@@ -93,8 +82,7 @@ export default function VoteWidget({ match, usingLocal = false }) {
   }, [match.id]);
 
   const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
-  const isKickoffValid = kickoff && !isNaN(kickoff.getTime());
-  const isLocked = (match.status !== "upcoming" || (isKickoffValid && now >= kickoff)) && !match.forceUnlocked;
+  const isLocked = (match.status !== "upcoming" || now >= kickoff) && !match.forceUnlocked;
   const totalVotes = match.votes?.total || 0;
 
   const getPercent = (key) => {
@@ -144,7 +132,7 @@ export default function VoteWidget({ match, usingLocal = false }) {
       const userCreatedAt = u.createdAt?.toDate 
         ? u.createdAt.toDate() 
         : (u.createdAt ? new Date(u.createdAt) : new Date(0));
-      return isKickoffValid && userCreatedAt <= kickoff;
+      return userCreatedAt <= kickoff;
     })
     .map(u => u.displayName);
 

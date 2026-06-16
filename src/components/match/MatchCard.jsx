@@ -9,7 +9,7 @@ import VoteWidget from "./VoteWidget";
  * Bao gồm: Cờ quốc gia, tên đội, tỷ số, thời gian, và VoteWidget.
  * Tích hợp bảng điều khiển cập nhật kết quả cho Admin.
  */
-export default function MatchCard({ match, usingLocal, setMatches }) {
+export default function MatchCard({ match }) {
   const { isAdmin } = useAuth();
   
   // Admin Edit states
@@ -21,32 +21,22 @@ export default function MatchCard({ match, usingLocal, setMatches }) {
   const [saving, setSaving] = useState(false);
 
   const formatDate = (date) => {
-    try {
-      const d = date instanceof Date ? date : new Date(date);
-      if (isNaN(d.getTime())) return "Chưa xác định";
-      return d.toLocaleDateString("vi-VN", {
-        weekday: "short",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-    } catch {
-      return "Chưa xác định";
-    }
+    const d = date instanceof Date ? date : new Date(date);
+    return d.toLocaleDateString("vi-VN", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const formatTime = (date) => {
-    try {
-      const d = date instanceof Date ? date : new Date(date);
-      if (isNaN(d.getTime())) return "--:--";
-      return d.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      });
-    } catch {
-      return "--:--";
-    }
+    const d = date instanceof Date ? date : new Date(date);
+    return d.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   };
 
   const getStatusBadge = () => {
@@ -99,35 +89,6 @@ export default function MatchCard({ match, usingLocal, setMatches }) {
         sA = null;
         sB = null;
         result = null;
-      }
-
-      if (usingLocal) {
-        if (setMatches) {
-          setMatches((currentMatches) =>
-            currentMatches.map((m) => {
-              if (m.id !== match.id) return m;
-
-              let calculatedResult = null;
-              if (editStatus === "finished") {
-                if (sA > sB) calculatedResult = "teamA";
-                else if (sA < sB) calculatedResult = "teamB";
-                else calculatedResult = "draw";
-              }
-
-              return {
-                ...m,
-                status: editStatus,
-                scoreA: sA,
-                scoreB: sB,
-                result: calculatedResult,
-                forceUnlocked: editForceUnlocked,
-              };
-            })
-          );
-        }
-        setIsEditing(false);
-        setSaving(false);
-        return;
       }
 
       const matchRef = doc(db, "matches", match.id);
@@ -284,29 +245,6 @@ export default function MatchCard({ match, usingLocal, setMatches }) {
       return;
     setSaving(true);
     try {
-      if (usingLocal) {
-        if (setMatches) {
-          setMatches((currentMatches) =>
-            currentMatches.map((m) => {
-              if (m.id !== match.id) return m;
-              return {
-                ...m,
-                votes: {
-                  teamA: 0,
-                  draw: 0,
-                  teamB: 0,
-                  total: 0,
-                },
-              };
-            })
-          );
-        }
-        setIsEditing(false);
-        setSaving(false);
-        alert("Đã reset toàn bộ bình chọn của trận đấu này thành công!");
-        return;
-      }
-
       const votesQuery = query(
         collection(db, "votes"),
         where("matchId", "==", match.id)
@@ -531,7 +469,7 @@ export default function MatchCard({ match, usingLocal, setMatches }) {
           </div>
 
           {/* Vote widget */}
-          <VoteWidget match={match} usingLocal={usingLocal} />
+          <VoteWidget match={match} />
         </>
       )}
     </div>
