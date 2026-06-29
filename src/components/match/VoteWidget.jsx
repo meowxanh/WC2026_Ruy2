@@ -82,6 +82,7 @@ export default function VoteWidget({ match }) {
   }, [match.id]);
 
   const kickoff = match.matchDate?.toDate ? match.matchDate.toDate() : new Date(match.matchDate);
+  const isKnockout = match.group && !match.group.startsWith("Bảng");
   const isLocked = (match.status !== "upcoming" || now >= kickoff) && !match.forceUnlocked;
   const totalVotes = match.votes?.total || 0;
 
@@ -170,7 +171,7 @@ export default function VoteWidget({ match }) {
       )}
 
       {/* Vote buttons */}
-      <div className="vote-buttons">
+      <div className={`vote-buttons ${isKnockout ? "vote-buttons--knockout" : ""}`}>
         <button
           className={`vote-btn vote-btn--teamA ${userVote === "teamA" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
           onClick={() => handleVote("teamA")}
@@ -181,15 +182,17 @@ export default function VoteWidget({ match }) {
           <span className="vote-btn-pct">{pctA}%</span>
         </button>
 
-        <button
-          className={`vote-btn vote-btn--draw ${userVote === "draw" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
-          onClick={() => handleVote("draw")}
-          disabled={isDisabled}
-          title={!user ? "Đăng nhập để bình chọn" : ""}
-        >
-          <span className="vote-btn-label">Hòa</span>
-          <span className="vote-btn-pct">{pctDraw}%</span>
-        </button>
+        {!isKnockout && (
+          <button
+            className={`vote-btn vote-btn--draw ${userVote === "draw" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
+            onClick={() => handleVote("draw")}
+            disabled={isDisabled}
+            title={!user ? "Đăng nhập để bình chọn" : ""}
+          >
+            <span className="vote-btn-label">Hòa</span>
+            <span className="vote-btn-pct">{pctDraw}%</span>
+          </button>
+        )}
 
         <button
           className={`vote-btn vote-btn--teamB ${userVote === "teamB" ? "vote-btn--selected" : ""} ${isDisabled ? "vote-btn--disabled" : ""}`}
@@ -210,12 +213,14 @@ export default function VoteWidget({ match }) {
             style={{ width: `${pctA}%` }}
           ></div>
         </div>
-        <div className="vote-bar">
-          <div
-            className="vote-bar-fill vote-bar-fill--draw"
-            style={{ width: `${pctDraw}%` }}
-          ></div>
-        </div>
+        {!isKnockout && (
+          <div className="vote-bar">
+            <div
+              className="vote-bar-fill vote-bar-fill--draw"
+              style={{ width: `${pctDraw}%` }}
+            ></div>
+          </div>
+        )}
         <div className="vote-bar">
           <div
             className="vote-bar-fill vote-bar-fill--teamB"
@@ -277,12 +282,14 @@ export default function VoteWidget({ match }) {
                   {teamAVoters.length > 0 ? teamAVoters.join(", ") : "Chưa có"}
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                <span style={{ color: "var(--accent-purple)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>Hòa:</span>
-                <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
-                  {drawVoters.length > 0 ? drawVoters.join(", ") : "Chưa có"}
-                </span>
-              </div>
+              {!isKnockout && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                  <span style={{ color: "var(--accent-purple)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>Hòa:</span>
+                  <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>
+                    {drawVoters.length > 0 ? drawVoters.join(", ") : "Chưa có"}
+                  </span>
+                </div>
+              )}
               <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
                 <span style={{ color: "var(--accent-green)", fontWeight: "600", minWidth: "80px", flexShrink: 0 }}>{match.teamB.name}:</span>
                 <span style={{ color: "var(--text-secondary)", wordBreak: "break-word" }}>

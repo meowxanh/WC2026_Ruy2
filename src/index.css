@@ -970,6 +970,10 @@ a {
   margin-bottom: 12px;
 }
 
+.vote-buttons--knockout {
+  grid-template-columns: 1fr 1fr;
+}
+
 .vote-btn {
   display: flex;
   flex-direction: column;
