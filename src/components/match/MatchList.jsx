@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { doc, setDoc, Timestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, Timestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useMatches } from "../../hooks/useMatches";
 import { seedMatches } from "../../data/seedMatches";
@@ -123,12 +123,40 @@ export default function MatchList() {
     try {
       for (const match of seedMatches) {
         const { id, matchDate, ...rest } = match;
-        await setDoc(doc(db, "matches", id), {
-          ...rest,
-          matchDate: Timestamp.fromDate(
+        const matchRef = doc(db, "matches", id);
+        const matchSnap = await getDoc(matchRef);
+
+        if (!matchSnap.exists()) {
+          // Trận đấu chưa tồn tại trong Firestore -> Tạo mới an toàn
+          await setDoc(matchRef, {
+            ...rest,
+            matchDate: Timestamp.fromDate(
+              matchDate instanceof Date ? matchDate : new Date(matchDate)
+            ),
+          });
+        } else {
+          // Trận đấu đã tồn tại -> Giữ lại tỉ số (scoreA, scoreB) và trạng thái (status, result) của Firestore
+          const existingData = matchSnap.data();
+          const updates = {};
+
+          if (existingData.status === undefined) updates.status = rest.status;
+          if (existingData.scoreA === undefined || existingData.scoreA === null) updates.scoreA = rest.scoreA;
+          if (existingData.scoreB === undefined || existingData.scoreB === null) updates.scoreB = rest.scoreB;
+          if (existingData.result === undefined || existingData.result === null) updates.result = rest.result;
+
+          updates.teamA = rest.teamA;
+          updates.teamB = rest.teamB;
+          updates.group = rest.group;
+          updates.venue = rest.venue;
+          updates.matchDate = Timestamp.fromDate(
             matchDate instanceof Date ? matchDate : new Date(matchDate)
-          ),
-        });
+          );
+
+          await setDoc(matchRef, {
+            ...existingData,
+            ...updates
+          }, { merge: true });
+        }
       }
       setSeedResult("success");
     } catch (err) {
