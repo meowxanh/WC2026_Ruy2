@@ -715,7 +715,7 @@ export const seedMatches = [
   {
     id: "R32_1",
     teamA: team(T.RSA), teamB: team(T.CAN),
-    group: "Vòng 32 đội", matchDate: new Date("2026-06-29T18:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-06-29T02:00:00+07:00"),
     venue: "Gillette Stadium (Boston)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -723,7 +723,7 @@ export const seedMatches = [
   {
     id: "R32_2",
     teamA: team(T.BRA), teamB: team(T.JPN),
-    group: "Vòng 32 đội", matchDate: new Date("2026-06-30T02:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-06-30T00:00:00+07:00"),
     venue: "Toronto Stadium (Toronto)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -731,7 +731,7 @@ export const seedMatches = [
   {
     id: "R32_3",
     teamA: team(T.GER), teamB: team(T.PAR),
-    group: "Vòng 32 đội", matchDate: new Date("2026-06-30T05:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-06-30T03:30:00+07:00"),
     venue: "SoFi Stadium (Los Angeles)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -747,7 +747,7 @@ export const seedMatches = [
   {
     id: "R32_5",
     teamA: team(T.CIV), teamB: team(T.NOR),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-01T02:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-01T00:00:00+07:00"),
     venue: "MetLife Stadium (New York New Jersey)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -755,7 +755,7 @@ export const seedMatches = [
   {
     id: "R32_6",
     teamA: team(T.FRA), teamB: team(T.SWE),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-01T05:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-01T04:00:00+07:00"),
     venue: "Mercedes-Benz Stadium (Atlanta)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -771,7 +771,7 @@ export const seedMatches = [
   {
     id: "R32_8",
     teamA: team(T.ENG), teamB: team(T.COD),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-02T02:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-01T23:00:00+07:00"),
     venue: "Lincoln Financial Field (Philadelphia)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -779,7 +779,7 @@ export const seedMatches = [
   {
     id: "R32_9",
     teamA: team(T.BEL), teamB: team(T.SEN),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-02T05:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-02T03:00:00+07:00"),
     venue: "Lumen Field (Seattle)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -787,7 +787,7 @@ export const seedMatches = [
   {
     id: "R32_10",
     teamA: team(T.USA), teamB: team(T.BIH),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-02T08:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-02T07:00:00+07:00"),
     venue: "Levi's Stadium (San Francisco)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -803,7 +803,7 @@ export const seedMatches = [
   {
     id: "R32_12",
     teamA: team(T.POR), teamB: team(T.CRO),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-03T05:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-03T06:00:00+07:00"),
     venue: "AT&T Stadium (Dallas)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -811,7 +811,7 @@ export const seedMatches = [
   {
     id: "R32_13",
     teamA: team(T.SUI), teamB: team(T.ALG),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-03T08:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-03T10:00:00+07:00"),
     venue: "NRG Stadium (Houston)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -819,7 +819,7 @@ export const seedMatches = [
   {
     id: "R32_14",
     teamA: team(T.AUS), teamB: team(T.EGY),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-04T02:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-04T01:00:00+07:00"),
     venue: "BC Place (Vancouver)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
@@ -835,7 +835,7 @@ export const seedMatches = [
   {
     id: "R32_16",
     teamA: team(T.COL), teamB: team(T.GHA),
-    group: "Vòng 32 đội", matchDate: new Date("2026-07-04T08:00:00+07:00"),
+    group: "Vòng 32 đội", matchDate: new Date("2026-07-04T08:30:00+07:00"),
     venue: "Estadio Akron (Guadalajara)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
