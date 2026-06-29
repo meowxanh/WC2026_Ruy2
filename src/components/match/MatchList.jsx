@@ -3,6 +3,7 @@ import { doc, setDoc, Timestamp } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useMatches } from "../../hooks/useMatches";
 import { seedMatches } from "../../data/seedMatches";
+import { useAuth } from "../../contexts/AuthContext";
 import MatchCard from "./MatchCard";
 
 const getVNFormatDateString = (d) => {
@@ -26,6 +27,7 @@ const FILTER_TABS = [
 
 export default function MatchList() {
   const { matches, loading, usingLocal } = useMatches();
+  const { isAdmin } = useAuth();
   const [activeFilter, setActiveFilter] = useState("upcoming");
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null); // "success" | "error"
@@ -160,9 +162,9 @@ export default function MatchList() {
       </div>
 
       {/* Notice khi dùng local data + nút seed */}
-      {usingLocal && (
+      {(usingLocal || isAdmin) && (
         <div className="local-data-notice">
-          <span>📡 Đang dùng dữ liệu mẫu (offline).</span>
+          <span>{usingLocal ? "📡 Đang dùng dữ liệu mẫu (offline)." : "🌐 Đang kết nối Firestore (Online)."}</span>
           {seedResult === "success" ? (
             <span className="seed-success">
               ✅ Đã đẩy {seedMatches.length} trận lên Firestore! Tải lại trang để xem.

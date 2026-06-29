@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -14,8 +14,13 @@ export default function Login() {
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   // Nếu đã đăng nhập, redirect về trang chủ
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
+
   if (user) {
-    navigate("/", { replace: true });
     return null;
   }
 

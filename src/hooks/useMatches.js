@@ -114,6 +114,7 @@ export function useMatches() {
 
       for (const match of matchesToFinish) {
         try {
+          const kickoff = match.matchDate instanceof Date ? match.matchDate : new Date(match.matchDate);
           const sA = match.scoreA;
           const sB = match.scoreB;
           let result = "draw";
@@ -214,7 +215,7 @@ export function useMatches() {
               const liveMatch = data.matches.find((m) => m.id === dbMatch.id);
               if (!liveMatch) return dbMatch;
 
-              const statusChanged = liveMatch.status && dbMatch.status !== liveMatch.status;
+              const statusChanged = liveMatch.status && dbMatch.status !== liveMatch.status && dbMatch.status !== "finished";
               const scoreAChanged = liveMatch.scoreA !== undefined && dbMatch.scoreA !== liveMatch.scoreA;
               const scoreBChanged = liveMatch.scoreB !== undefined && dbMatch.scoreB !== liveMatch.scoreB;
 
@@ -245,7 +246,7 @@ export function useMatches() {
             const dbMatch = matches.find(m => m.id === liveMatch.id);
             if (!dbMatch) continue;
 
-            const statusChanged = liveMatch.status && dbMatch.status !== liveMatch.status;
+            const statusChanged = liveMatch.status && dbMatch.status !== liveMatch.status && dbMatch.status !== "finished";
             const scoreAChanged = liveMatch.scoreA !== undefined && dbMatch.scoreA !== liveMatch.scoreA;
             const scoreBChanged = liveMatch.scoreB !== undefined && dbMatch.scoreB !== liveMatch.scoreB;
 
