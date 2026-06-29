@@ -43,7 +43,7 @@ export default function VoteWidget({ match }) {
             isAdmin: doc.data().isAdmin,
             createdAt: doc.data().createdAt
           }))
-          .filter(u => u.isAdmin !== true)
+          .filter(u => u.isAdmin !== true && u.displayName && u.displayName !== "Ẩn danh" && u.displayName.trim() !== "")
           .sort((a, b) => a.displayName.localeCompare(b.displayName));
         setUsersList(list);
       } catch (err) {
@@ -121,14 +121,15 @@ export default function VoteWidget({ match }) {
   // Vô hiệu hóa nút bấm khi: Đã khóa, Đang gửi, Chưa đăng nhập (Không khóa khi đã vote để người dùng đổi hoặc hủy)
   const isDisabled = isLocked || voting || !user || (isAdmin && (!selectedUserId || selectedUserId === user.uid));
 
-  const teamAVoters = allVotes.filter(v => v.vote === "teamA").map(v => v.userName || "Ẩn danh");
-  const drawVoters = allVotes.filter(v => v.vote === "draw").map(v => v.userName || "Ẩn danh");
-  const teamBVoters = allVotes.filter(v => v.vote === "teamB").map(v => v.userName || "Ẩn danh");
+  const teamAVoters = allVotes.filter(v => v.vote === "teamA" && v.userName && v.userName !== "Ẩn danh" && v.userName.trim() !== "").map(v => v.userName);
+  const drawVoters = allVotes.filter(v => v.vote === "draw" && v.userName && v.userName !== "Ẩn danh" && v.userName.trim() !== "").map(v => v.userName);
+  const teamBVoters = allVotes.filter(v => v.vote === "teamB" && v.userName && v.userName !== "Ẩn danh" && v.userName.trim() !== "").map(v => v.userName);
 
   const votedUserIds = new Set(allVotes.map(v => v.userId));
   const nonVoters = usersList
     .filter(u => {
       if (votedUserIds.has(u.uid)) return false;
+      if (!u.displayName || u.displayName.trim() === "" || u.displayName === "Ẩn danh") return false;
       const userCreatedAt = u.createdAt?.toDate 
         ? u.createdAt.toDate() 
         : (u.createdAt ? new Date(u.createdAt) : new Date(0));

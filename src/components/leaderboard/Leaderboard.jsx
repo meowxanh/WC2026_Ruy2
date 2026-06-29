@@ -8,6 +8,7 @@ import {
   getDocs,
   doc,
   writeBatch,
+  where,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { useAuth } from "../../contexts/AuthContext";
@@ -62,6 +63,32 @@ export default function Leaderboard() {
       const votesSnapshot = await getDocs(collection(db, "votes"));
 
       // 3. Get all users
+      const rawUsersSnapshot = await getDocs(collection(db, "users"));
+
+      // Tự động xóa các tài khoản ẩn danh/không có tên và tất cả các vote liên quan
+      const deleteBatch = writeBatch(db);
+      let deletedCount = 0;
+      for (const userDoc of rawUsersSnapshot.docs) {
+        const userData = userDoc.data();
+        const userId = userDoc.id;
+        const name = userData.displayName;
+        if (userData.isAdmin !== true && (!name || name.trim() === "" || name === "Ẩn danh")) {
+          deleteBatch.delete(userDoc.ref);
+          deletedCount++;
+
+          const qVotes = query(collection(db, "votes"), where("userId", "==", userId));
+          const vSnap = await getDocs(qVotes);
+          vSnap.forEach((voteDoc) => {
+            deleteBatch.delete(voteDoc.ref);
+          });
+        }
+      }
+      if (deletedCount > 0) {
+        await deleteBatch.commit();
+        console.log(`Deleted ${deletedCount} anonymous users and their votes.`);
+      }
+
+      // Lấy lại danh sách user sạch sau khi đã xóa
       const usersSnapshot = await getDocs(collection(db, "users"));
       const userScores = {}; // userId -> { correct: 0, total: 0 }
       const userCreatedDates = {}; // userId -> Date
@@ -175,7 +202,7 @@ export default function Leaderboard() {
           } else {
             const data = snapshot.docs
               .map((doc) => ({ id: doc.id, ...doc.data() }))
-              .filter((u) => u.totalPredictions > 0 && u.isAdmin !== true);
+              .filter((u) => u.totalPredictions > 0 && u.isAdmin !== true && u.displayName && u.displayName.trim() !== "" && u.displayName !== "Ẩn danh");
             setUsers(data.length > 0 ? data : sampleLeaderboard);
             setUsingLocal(data.length === 0);
           }
