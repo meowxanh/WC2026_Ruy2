@@ -840,4 +840,72 @@ export const seedMatches = [
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
   },
+
+  // ========================================
+  //  ROUND OF 16 — July 5 – July 8
+  // ========================================
+  {
+    id: "R16_1",
+    teamA: team(T.CAN), teamB: team(T.MAR),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-05T00:00:00+07:00"),
+    venue: "NRG Stadium (Houston)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_2",
+    teamA: team(T.PAR), teamB: team(T.FRA),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-05T04:00:00+07:00"),
+    venue: "Lincoln Financial Field (Philadelphia)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_3",
+    teamA: team(T.BRA), teamB: team(T.NOR),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-06T03:00:00+07:00"),
+    venue: "MetLife Stadium (New York New Jersey)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_4",
+    teamA: team(T.MEX), teamB: team(T.ENG),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-06T07:00:00+07:00"),
+    venue: "Azteca Stadium (Mexico City)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_5",
+    teamA: team(T.POR), teamB: team(T.ESP),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-07T02:00:00+07:00"),
+    venue: "AT&T Stadium (Dallas)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_6",
+    teamA: team(T.USA), teamB: team(T.BEL),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-07T07:00:00+07:00"),
+    venue: "Lumen Field (Seattle)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_7",
+    teamA: team(T.ARG), teamB: team(T.EGY),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-07T23:00:00+07:00"),
+    venue: "Mercedes-Benz Stadium (Atlanta)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "R16_8",
+    teamA: team(T.SUI), teamB: team(T.COL),
+    group: "Vòng 16 đội", matchDate: new Date("2026-07-08T03:00:00+07:00"),
+    venue: "BC Place (Vancouver)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
 ];
