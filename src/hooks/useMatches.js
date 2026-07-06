@@ -17,6 +17,12 @@ import { useAuth } from "../contexts/AuthContext";
 
 const FIRESTORE_TIMEOUT_MS = 3000;
 
+const isPhase2Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("16") || name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+};
+
 /**
  * Hook lấy danh sách trận đấu real-time từ Firestore.
  * Nếu Firestore không phản hồi trong 3s hoặc trống → fallback về seed data.
@@ -139,6 +145,7 @@ export function useMatches() {
           const votedUserIds = new Set();
           const batch = writeBatch(db);
 
+          const isPhase2 = isPhase2Match(match.group);
           if (!votesSnapshot.empty) {
             for (const voteDoc of votesSnapshot.docs) {
               const voteData = voteDoc.data();
@@ -148,10 +155,18 @@ export function useMatches() {
               batch.update(voteDoc.ref, { isCorrect });
 
               const userRef = doc(db, "users", voteData.userId);
-              batch.update(userRef, {
+              const updates = {
                 correctPredictions: increment(isCorrect ? 1 : 0),
                 totalPredictions: increment(1),
-              });
+              };
+              if (isPhase2) {
+                updates.correctPredictionsPhase2 = increment(isCorrect ? 1 : 0);
+                updates.totalPredictionsPhase2 = increment(1);
+              } else {
+                updates.correctPredictionsPhase1 = increment(isCorrect ? 1 : 0);
+                updates.totalPredictionsPhase1 = increment(1);
+              }
+              batch.update(userRef, updates);
             }
           }
 
@@ -173,9 +188,15 @@ export function useMatches() {
 
               if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
                 const userRef = doc(db, "users", userDoc.id);
-                batch.update(userRef, {
+                const updates = {
                   totalPredictions: increment(1),
-                });
+                };
+                if (isPhase2) {
+                  updates.totalPredictionsPhase2 = increment(1);
+                } else {
+                  updates.totalPredictionsPhase1 = increment(1);
+                }
+                batch.update(userRef, updates);
               }
             }
           }
@@ -274,6 +295,7 @@ export function useMatches() {
                 const usersSnapshot = await getDocs(collection(db, "users"));
                 const votedUserIds = new Set();
 
+                const isPhase2 = isPhase2Match(dbMatch.group);
                 if (!votesSnapshot.empty) {
                   for (const voteDoc of votesSnapshot.docs) {
                     const voteData = voteDoc.data();
@@ -283,10 +305,18 @@ export function useMatches() {
                     batch.update(voteDoc.ref, { isCorrect });
 
                     const userRef = doc(db, "users", voteData.userId);
-                    batch.update(userRef, {
+                    const updates = {
                       correctPredictions: increment(isCorrect ? 1 : 0),
                       totalPredictions: increment(1),
-                    });
+                    };
+                    if (isPhase2) {
+                      updates.correctPredictionsPhase2 = increment(isCorrect ? 1 : 0);
+                      updates.totalPredictionsPhase2 = increment(1);
+                    } else {
+                      updates.correctPredictionsPhase1 = increment(isCorrect ? 1 : 0);
+                      updates.totalPredictionsPhase1 = increment(1);
+                    }
+                    batch.update(userRef, updates);
                   }
                 }
 
@@ -306,9 +336,15 @@ export function useMatches() {
 
                     if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
                       const userRef = doc(db, "users", userDoc.id);
-                      batch.update(userRef, {
+                      const updates = {
                         totalPredictions: increment(1),
-                      });
+                      };
+                      if (isPhase2) {
+                        updates.totalPredictionsPhase2 = increment(1);
+                      } else {
+                        updates.totalPredictionsPhase1 = increment(1);
+                      }
+                      batch.update(userRef, updates);
                     }
                   }
                 }

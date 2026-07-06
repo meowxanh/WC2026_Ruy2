@@ -103,6 +103,10 @@ export default function AdminCreateAccount() {
         password, // Lưu mật khẩu thực tế vào Firestore
         correctPredictions: 0,
         totalPredictions: 0,
+        correctPredictionsPhase1: 0,
+        totalPredictionsPhase1: 0,
+        correctPredictionsPhase2: 0,
+        totalPredictionsPhase2: 0,
         createdAt: serverTimestamp(),
         isAdmin: false,
       });

@@ -61,6 +61,10 @@ export function AuthProvider({ children }) {
               provider: firebaseUser.providerData[0]?.providerId || "unknown",
               correctPredictions: 0,
               totalPredictions: 0,
+              correctPredictionsPhase1: 0,
+              totalPredictionsPhase1: 0,
+              correctPredictionsPhase2: 0,
+              totalPredictionsPhase2: 0,
               createdAt: serverTimestamp(),
               isAdmin: emailIsAdmin,
             });
@@ -112,6 +116,10 @@ export function AuthProvider({ children }) {
         password: password, // Save the actual password in Firestore
         correctPredictions: 0,
         totalPredictions: 0,
+        correctPredictionsPhase1: 0,
+        totalPredictionsPhase1: 0,
+        correctPredictionsPhase2: 0,
+        totalPredictionsPhase2: 0,
         createdAt: serverTimestamp(),
         isAdmin: emailIsAdmin,
       }, { merge: true });

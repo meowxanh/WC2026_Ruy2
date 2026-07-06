@@ -4,6 +4,12 @@ import { db } from "../../lib/firebase";
 import { useAuth } from "../../contexts/AuthContext";
 import VoteWidget from "./VoteWidget";
 
+const isPhase2Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("16") || name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+};
+
 /**
  * Card hiển thị thông tin một trận đấu.
  * Bao gồm: Cờ quốc gia, tên đội, tỷ số, thời gian, và VoteWidget.
@@ -110,6 +116,7 @@ export default function MatchCard({ match }) {
         const votedUserIds = new Set();
         const batch = writeBatch(db);
 
+        const isPhase2 = isPhase2Match(match.group);
         if (!votesSnapshot.empty) {
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
@@ -136,10 +143,18 @@ export default function MatchCard({ match }) {
             }
 
             const userRef = doc(db, "users", voteData.userId);
-            batch.update(userRef, {
+            const updates = {
               correctPredictions: increment(correctInc),
               totalPredictions: increment(totalInc)
-            });
+            };
+            if (isPhase2) {
+              updates.correctPredictionsPhase2 = increment(correctInc);
+              updates.totalPredictionsPhase2 = increment(totalInc);
+            } else {
+              updates.correctPredictionsPhase1 = increment(correctInc);
+              updates.totalPredictionsPhase1 = increment(totalInc);
+            }
+            batch.update(userRef, updates);
           }
         }
 
@@ -162,9 +177,15 @@ export default function MatchCard({ match }) {
 
             if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
               const userRef = doc(db, "users", userDoc.id);
-              batch.update(userRef, {
+              const updates = {
                 totalPredictions: increment(1)
-              });
+              };
+              if (isPhase2) {
+                updates.totalPredictionsPhase2 = increment(1);
+              } else {
+                updates.totalPredictionsPhase1 = increment(1);
+              }
+              batch.update(userRef, updates);
             }
           }
         }
@@ -180,6 +201,7 @@ export default function MatchCard({ match }) {
         const votedUserIds = new Set();
         const batch = writeBatch(db);
 
+        const isPhase2 = isPhase2Match(match.group);
         if (!votesSnapshot.empty) {
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
@@ -190,10 +212,18 @@ export default function MatchCard({ match }) {
               batch.update(voteDoc.ref, { isCorrect: null });
 
               const userRef = doc(db, "users", voteData.userId);
-              batch.update(userRef, {
+              const updates = {
                 correctPredictions: increment(wasCorrect ? -1 : 0),
                 totalPredictions: increment(-1)
-              });
+              };
+              if (isPhase2) {
+                updates.correctPredictionsPhase2 = increment(wasCorrect ? -1 : 0);
+                updates.totalPredictionsPhase2 = increment(-1);
+              } else {
+                updates.correctPredictionsPhase1 = increment(wasCorrect ? -1 : 0);
+                updates.totalPredictionsPhase1 = increment(-1);
+              }
+              batch.update(userRef, updates);
             }
           }
         }
@@ -217,9 +247,15 @@ export default function MatchCard({ match }) {
 
             if (isPlayer && !votedUserIds.has(userDoc.id) && wasCreatedBeforeKickoff) {
               const userRef = doc(db, "users", userDoc.id);
-              batch.update(userRef, {
+              const updates = {
                 totalPredictions: increment(-1)
-              });
+              };
+              if (isPhase2) {
+                updates.totalPredictionsPhase2 = increment(-1);
+              } else {
+                updates.totalPredictionsPhase1 = increment(-1);
+              }
+              batch.update(userRef, updates);
             }
           }
         }
@@ -263,11 +299,20 @@ export default function MatchCard({ match }) {
 
           // Nếu kết quả đã được tính điểm, hoàn tác điểm cho user
           if (wasCorrect !== undefined && wasCorrect !== null) {
+            const isPhase2 = isPhase2Match(match.group);
             const userRef = doc(db, "users", voteData.userId);
-            batch.update(userRef, {
+            const updates = {
               correctPredictions: increment(wasCorrect ? -1 : 0),
               totalPredictions: increment(-1),
-            });
+            };
+            if (isPhase2) {
+              updates.correctPredictionsPhase2 = increment(wasCorrect ? -1 : 0);
+              updates.totalPredictionsPhase2 = increment(-1);
+            } else {
+              updates.correctPredictionsPhase1 = increment(wasCorrect ? -1 : 0);
+              updates.totalPredictionsPhase1 = increment(-1);
+            }
+            batch.update(userRef, updates);
           }
         }
       }

@@ -21,15 +21,21 @@ const MEDAL_ICONS = ["🥇", "🥈", "🥉"];
  * Fallback dữ liệu mẫu khi chưa có Firestore.
  */
 
+const isPhase2Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("16") || name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+};
+
 const sampleLeaderboard = [
-  { id: "1", displayName: "Nguyễn Văn A", photoURL: null, correctPredictions: 8, totalPredictions: 10 },
-  { id: "2", displayName: "Trần Thị B", photoURL: null, correctPredictions: 7, totalPredictions: 10 },
-  { id: "3", displayName: "Lê Hoàng C", photoURL: null, correctPredictions: 7, totalPredictions: 12 },
-  { id: "4", displayName: "Phạm Minh D", photoURL: null, correctPredictions: 6, totalPredictions: 10 },
-  { id: "5", displayName: "Hoàng Anh E", photoURL: null, correctPredictions: 5, totalPredictions: 8 },
-  { id: "6", displayName: "Vũ Đức F", photoURL: null, correctPredictions: 5, totalPredictions: 10 },
-  { id: "7", displayName: "Đỗ Thanh G", photoURL: null, correctPredictions: 4, totalPredictions: 9 },
-  { id: "8", displayName: "Bùi Quang H", photoURL: null, correctPredictions: 4, totalPredictions: 10 },
+  { id: "1", displayName: "Nguyễn Văn A", photoURL: null, correctPredictions: 8, totalPredictions: 10, correctPredictionsPhase1: 5, totalPredictionsPhase1: 6, correctPredictionsPhase2: 3, totalPredictionsPhase2: 4 },
+  { id: "2", displayName: "Trần Thị B", photoURL: null, correctPredictions: 7, totalPredictions: 10, correctPredictionsPhase1: 4, totalPredictionsPhase1: 6, correctPredictionsPhase2: 3, totalPredictionsPhase2: 4 },
+  { id: "3", displayName: "Lê Hoàng C", photoURL: null, correctPredictions: 7, totalPredictions: 12, correctPredictionsPhase1: 4, totalPredictionsPhase1: 7, correctPredictionsPhase2: 3, totalPredictionsPhase2: 5 },
+  { id: "4", displayName: "Phạm Minh D", photoURL: null, correctPredictions: 6, totalPredictions: 10, correctPredictionsPhase1: 4, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
+  { id: "5", displayName: "Hoàng Anh E", photoURL: null, correctPredictions: 5, totalPredictions: 8, correctPredictionsPhase1: 3, totalPredictionsPhase1: 5, correctPredictionsPhase2: 2, totalPredictionsPhase2: 3 },
+  { id: "6", displayName: "Vũ Đức F", photoURL: null, correctPredictions: 5, totalPredictions: 10, correctPredictionsPhase1: 3, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
+  { id: "7", displayName: "Đỗ Thanh G", photoURL: null, correctPredictions: 4, totalPredictions: 9, correctPredictionsPhase1: 2, totalPredictionsPhase1: 5, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
+  { id: "8", displayName: "Bùi Quang H", photoURL: null, correctPredictions: 4, totalPredictions: 10, correctPredictionsPhase1: 2, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
 ];
 
 export default function Leaderboard() {
@@ -38,6 +44,7 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [usingLocal, setUsingLocal] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
+  const [activeTab, setActiveTab] = useState("chung_cuoc"); // "chung_cuoc", "phase1", "phase2"
 
   const handleRecalculateLeaderboard = async () => {
     if (
@@ -50,12 +57,12 @@ export default function Leaderboard() {
     try {
       // 1. Get all matches
       const matchesSnapshot = await getDocs(collection(db, "matches"));
-      const finishedMatches = {}; // matchId -> { result, kickoff }
+      const finishedMatches = {}; // matchId -> { result, kickoff, group }
       matchesSnapshot.docs.forEach((doc) => {
         const data = doc.data();
         if (data.status === "finished" && data.result) {
           const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
-          finishedMatches[doc.id] = { result: data.result, kickoff };
+          finishedMatches[doc.id] = { result: data.result, kickoff, group: data.group };
         }
       });
 
@@ -90,7 +97,7 @@ export default function Leaderboard() {
 
       // Lấy lại danh sách user sạch sau khi đã xóa
       const usersSnapshot = await getDocs(collection(db, "users"));
-      const userScores = {}; // userId -> { correct: 0, total: 0 }
+      const userScores = {}; // userId -> { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 }
       const userCreatedDates = {}; // userId -> Date
 
       // Initialize only player users (exclude admins)
@@ -98,7 +105,7 @@ export default function Leaderboard() {
         const data = doc.data();
         const isPlayer = data.isAdmin !== true;
         if (isPlayer) {
-          userScores[doc.id] = { correct: 0, total: 0 };
+          userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 };
           userCreatedDates[doc.id] = data.createdAt?.toDate 
             ? data.createdAt.toDate() 
             : (data.createdAt ? new Date(data.createdAt) : new Date(0));
@@ -123,9 +130,19 @@ export default function Leaderboard() {
 
         if (matchInfo) {
           const isCorrect = voteData.vote === matchInfo.result;
+          const isPhase2 = isPhase2Match(matchInfo.group);
+
           userScores[voteData.userId].total += 1;
           if (isCorrect) {
             userScores[voteData.userId].correct += 1;
+          }
+
+          if (isPhase2) {
+            userScores[voteData.userId].total2 += 1;
+            if (isCorrect) userScores[voteData.userId].correct2 += 1;
+          } else {
+            userScores[voteData.userId].total1 += 1;
+            if (isCorrect) userScores[voteData.userId].correct1 += 1;
           }
 
           if (voteData.isCorrect !== isCorrect) {
@@ -152,7 +169,13 @@ export default function Leaderboard() {
             const wasCreatedBeforeKickoff = userCreated <= matchInfo.kickoff;
 
             if (isAfterThreshold && wasCreatedBeforeKickoff) {
+              const isPhase2 = isPhase2Match(matchInfo.group);
               userScores[userId].total += 1;
+              if (isPhase2) {
+                userScores[userId].total2 += 1;
+              } else {
+                userScores[userId].total1 += 1;
+              }
             }
           }
         }
@@ -166,11 +189,19 @@ export default function Leaderboard() {
           batch.update(userRef, {
             correctPredictions: userScores[userId].correct,
             totalPredictions: userScores[userId].total,
+            correctPredictionsPhase1: userScores[userId].correct1,
+            totalPredictionsPhase1: userScores[userId].total1,
+            correctPredictionsPhase2: userScores[userId].correct2,
+            totalPredictionsPhase2: userScores[userId].total2,
           });
         } else {
           batch.update(userRef, {
             correctPredictions: 0,
             totalPredictions: 0,
+            correctPredictionsPhase1: 0,
+            totalPredictionsPhase1: 0,
+            correctPredictionsPhase2: 0,
+            totalPredictionsPhase2: 0,
           });
         }
       }
@@ -189,9 +220,7 @@ export default function Leaderboard() {
     let unsubscribe;
     try {
       const q = query(
-        collection(db, "users"),
-        orderBy("correctPredictions", "desc"),
-        limit(20)
+        collection(db, "users")
       );
       unsubscribe = onSnapshot(
         q,
@@ -202,7 +231,7 @@ export default function Leaderboard() {
           } else {
             const data = snapshot.docs
               .map((doc) => ({ id: doc.id, ...doc.data() }))
-              .filter((u) => u.totalPredictions > 0 && u.isAdmin !== true && u.displayName && u.displayName.trim() !== "" && u.displayName !== "Ẩn danh");
+              .filter((u) => u.isAdmin !== true && u.displayName && u.displayName.trim() !== "" && u.displayName !== "Ẩn danh");
             setUsers(data.length > 0 ? data : sampleLeaderboard);
             setUsingLocal(data.length === 0);
           }
@@ -227,12 +256,12 @@ export default function Leaderboard() {
       const autoRecalculate = async () => {
         try {
           const matchesSnapshot = await getDocs(collection(db, "matches"));
-          const finishedMatches = {}; // matchId -> { result, kickoff }
+          const finishedMatches = {}; // matchId -> { result, kickoff, group }
           matchesSnapshot.docs.forEach((doc) => {
             const data = doc.data();
             if (data.status === "finished" && data.result) {
               const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
-              finishedMatches[doc.id] = { result: data.result, kickoff };
+              finishedMatches[doc.id] = { result: data.result, kickoff, group: data.group };
             }
           });
 
@@ -246,7 +275,7 @@ export default function Leaderboard() {
             const data = doc.data();
             const isPlayer = data.isAdmin !== true;
             if (isPlayer) {
-              userScores[doc.id] = { correct: 0, total: 0 };
+              userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 };
               userCreatedDates[doc.id] = data.createdAt?.toDate 
                 ? data.createdAt.toDate() 
                 : (data.createdAt ? new Date(data.createdAt) : new Date(0));
@@ -271,9 +300,19 @@ export default function Leaderboard() {
 
             if (matchInfo) {
               const isCorrect = voteData.vote === matchInfo.result;
+              const isPhase2 = isPhase2Match(matchInfo.group);
+
               userScores[voteData.userId].total += 1;
               if (isCorrect) {
                 userScores[voteData.userId].correct += 1;
+              }
+
+              if (isPhase2) {
+                userScores[voteData.userId].total2 += 1;
+                if (isCorrect) userScores[voteData.userId].correct2 += 1;
+              } else {
+                userScores[voteData.userId].total1 += 1;
+                if (isCorrect) userScores[voteData.userId].correct1 += 1;
               }
 
               if (voteData.isCorrect !== isCorrect) {
@@ -301,7 +340,13 @@ export default function Leaderboard() {
                 const wasCreatedBeforeKickoff = userCreated <= matchInfo.kickoff;
 
                 if (isAfterThreshold && wasCreatedBeforeKickoff) {
+                  const isPhase2 = isPhase2Match(matchInfo.group);
                   userScores[userId].total += 1;
+                  if (isPhase2) {
+                    userScores[userId].total2 += 1;
+                  } else {
+                    userScores[userId].total1 += 1;
+                  }
                 }
               }
             }
@@ -311,16 +356,24 @@ export default function Leaderboard() {
           for (const userDoc of usersSnapshot.docs) {
             const userId = userDoc.id;
             const userData = userDoc.data();
-            const computed = userScores[userId] || { correct: 0, total: 0 };
+            const computed = userScores[userId] || { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 };
             
             if (
               userData.correctPredictions !== computed.correct ||
-              userData.totalPredictions !== computed.total
+              userData.totalPredictions !== computed.total ||
+              userData.correctPredictionsPhase1 !== computed.correct1 ||
+              userData.totalPredictionsPhase1 !== computed.total1 ||
+              userData.correctPredictionsPhase2 !== computed.correct2 ||
+              userData.totalPredictionsPhase2 !== computed.total2
             ) {
               const userRef = doc(db, "users", userId);
               batch.update(userRef, {
                 correctPredictions: computed.correct,
                 totalPredictions: computed.total,
+                correctPredictionsPhase1: computed.correct1,
+                totalPredictionsPhase1: computed.total1,
+                correctPredictionsPhase2: computed.correct2,
+                totalPredictionsPhase2: computed.total2,
               });
               needsUpdate = true;
             }
@@ -347,6 +400,41 @@ export default function Leaderboard() {
     );
   }
 
+  // Lọc và sắp xếp người dùng theo Tab hoạt động
+  const sortedUsers = [...users]
+    .filter((u) => {
+      if (activeTab === "phase1") {
+        return u.totalPredictionsPhase1 > 0 || (usingLocal && u.totalPredictionsPhase1 !== undefined);
+      } else if (activeTab === "phase2") {
+        return u.totalPredictionsPhase2 > 0 || (usingLocal && u.totalPredictionsPhase2 !== undefined);
+      } else {
+        return u.totalPredictions > 0 || (usingLocal && u.totalPredictions !== undefined);
+      }
+    })
+    .sort((a, b) => {
+      let correctA, totalA, correctB, totalB;
+      if (activeTab === "phase1") {
+        correctA = a.correctPredictionsPhase1 || 0;
+        totalA = a.totalPredictionsPhase1 || 0;
+        correctB = b.correctPredictionsPhase1 || 0;
+        totalB = b.totalPredictionsPhase1 || 0;
+      } else if (activeTab === "phase2") {
+        correctA = a.correctPredictionsPhase2 || 0;
+        totalA = a.totalPredictionsPhase2 || 0;
+        correctB = b.correctPredictionsPhase2 || 0;
+        totalB = b.totalPredictionsPhase2 || 0;
+      } else {
+        correctA = a.correctPredictions || 0;
+        totalA = a.totalPredictions || 0;
+        correctB = b.correctPredictions || 0;
+        totalB = b.totalPredictions || 0;
+      }
+
+      if (correctA !== correctB) return correctB - correctA; // Đúng nhiều hơn xếp trước
+      if (totalA !== totalB) return totalA - totalB; // Đoán ít hơn (tỷ lệ tốt hơn) xếp trước
+      return (a.displayName || "").localeCompare(b.displayName || ""); // Tên theo bảng chữ cái
+    });
+
   return (
     <div className="leaderboard-page">
       <div className="page-hero">
@@ -358,6 +446,75 @@ export default function Leaderboard() {
         <p className="page-description">
           Top những người dự đoán chính xác nhất World Cup 2026
         </p>
+      </div>
+
+      {/* Tabs chuyển đổi giữa các bảng xếp hạng */}
+      <div className="leaderboard-tabs" style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: "10px",
+        marginBottom: "30px",
+        padding: "4px",
+        background: "rgba(255, 255, 255, 0.02)",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border-subtle)",
+        maxWidth: "520px",
+        margin: "0 auto 30px auto"
+      }}>
+        <button
+          onClick={() => setActiveTab("chung_cuoc")}
+          style={{
+            flex: 1,
+            padding: "10px 14px",
+            fontSize: "0.82rem",
+            fontWeight: "600",
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: activeTab === "chung_cuoc" ? "var(--gradient-primary)" : "transparent",
+            color: activeTab === "chung_cuoc" ? "#0a0e1a" : "var(--text-secondary)"
+          }}
+          className="lb-tab-btn"
+        >
+          🏆 Chung Cuộc
+        </button>
+        <button
+          onClick={() => setActiveTab("phase1")}
+          style={{
+            flex: 1,
+            padding: "10px 14px",
+            fontSize: "0.82rem",
+            fontWeight: "600",
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: activeTab === "phase1" ? "var(--gradient-primary)" : "transparent",
+            color: activeTab === "phase1" ? "#0a0e1a" : "var(--text-secondary)"
+          }}
+          className="lb-tab-btn"
+        >
+          ⚔️ Vòng Bảng - V32
+        </button>
+        <button
+          onClick={() => setActiveTab("phase2")}
+          style={{
+            flex: 1,
+            padding: "10px 14px",
+            fontSize: "0.82rem",
+            fontWeight: "600",
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: activeTab === "phase2" ? "var(--gradient-primary)" : "transparent",
+            color: activeTab === "phase2" ? "#0a0e1a" : "var(--text-secondary)"
+          }}
+          className="lb-tab-btn"
+        >
+          🔥 Vòng 16 Trở Đi
+        </button>
       </div>
 
       {isAdmin && !usingLocal && (
@@ -405,10 +562,27 @@ export default function Leaderboard() {
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 && (() => {
-              const totalCorrect = users.reduce((sum, u) => sum + (u.correctPredictions || 0), 0);
-              const totalWrong = users.reduce((sum, u) => sum + ((u.totalPredictions || 0) - (u.correctPredictions || 0)), 0);
-              const totalPredictions = users.reduce((sum, u) => sum + (u.totalPredictions || 0), 0);
+            {sortedUsers.length > 0 && (() => {
+              const getStats = (u) => {
+                if (activeTab === "phase1") {
+                  const correct = u.correctPredictionsPhase1 || 0;
+                  const total = u.totalPredictionsPhase1 || 0;
+                  return { correct, total, wrong: total - correct };
+                } else if (activeTab === "phase2") {
+                  const correct = u.correctPredictionsPhase2 || 0;
+                  const total = u.totalPredictionsPhase2 || 0;
+                  return { correct, total, wrong: total - correct };
+                } else {
+                  const correct = u.correctPredictions || 0;
+                  const total = u.totalPredictions || 0;
+                  return { correct, total, wrong: total - correct };
+                }
+              };
+
+              const userStats = sortedUsers.map(getStats);
+              const totalCorrect = userStats.reduce((sum, s) => sum + s.correct, 0);
+              const totalWrong = userStats.reduce((sum, s) => sum + s.wrong, 0);
+              const totalPredictions = userStats.reduce((sum, s) => sum + s.total, 0);
               const averageRate = totalPredictions > 0 ? Math.round((totalCorrect / totalPredictions) * 100) : 0;
               
               return (
@@ -439,15 +613,22 @@ export default function Leaderboard() {
                 </tr>
               );
             })()}
-            {users.map((user, index) => {
-              const rate =
-                user.totalPredictions > 0
-                  ? Math.round(
-                      (user.correctPredictions / user.totalPredictions) * 100
-                    )
-                  : 0;
+            {sortedUsers.map((user, index) => {
+              const correct = activeTab === "phase1"
+                ? (user.correctPredictionsPhase1 || 0)
+                : activeTab === "phase2"
+                ? (user.correctPredictionsPhase2 || 0)
+                : (user.correctPredictions || 0);
+
+              const total = activeTab === "phase1"
+                ? (user.totalPredictionsPhase1 || 0)
+                : activeTab === "phase2"
+                ? (user.totalPredictionsPhase2 || 0)
+                : (user.totalPredictions || 0);
+
+              const wrongCount = total - correct;
+              const rate = total > 0 ? Math.round((correct / total) * 100) : 0;
               const isTop3 = index < 3;
-              const wrongCount = (user.totalPredictions || 0) - (user.correctPredictions || 0);
 
               return (
                 <tr
@@ -474,13 +655,13 @@ export default function Leaderboard() {
                     <span className="lb-name">{user.displayName}</span>
                   </td>
                   <td className="lb-cell lb-cell--correct">
-                    {user.correctPredictions}
+                    {correct}
                   </td>
                   <td className="lb-cell lb-cell--wrong">
                     {wrongCount}
                   </td>
                   <td className="lb-cell lb-cell--total">
-                    {user.totalPredictions}
+                    {total}
                   </td>
                   <td className="lb-cell lb-cell--rate">
                     <div className="lb-rate-bar">
