@@ -21,7 +21,13 @@ const FIRESTORE_TIMEOUT_MS = 3000;
 const isPhase2Match = (groupName) => {
   if (!groupName) return false;
   const name = groupName.toLowerCase();
-  return name.includes("16") || name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+  return name.includes("16");
+};
+
+const isPhase3Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
 };
 
 /**
@@ -174,6 +180,7 @@ export function useMatches() {
           const batch = writeBatch(db);
 
           const isPhase2 = isPhase2Match(match.group);
+          const isPhase3 = isPhase3Match(match.group);
           if (!votesSnapshot.empty) {
             for (const voteDoc of votesSnapshot.docs) {
               const voteData = voteDoc.data();
@@ -187,7 +194,10 @@ export function useMatches() {
                 correctPredictions: increment(isCorrect ? 1 : 0),
                 totalPredictions: increment(1),
               };
-              if (isPhase2) {
+              if (isPhase3) {
+                updates.correctPredictionsPhase3 = increment(isCorrect ? 1 : 0);
+                updates.totalPredictionsPhase3 = increment(1);
+              } else if (isPhase2) {
                 updates.correctPredictionsPhase2 = increment(isCorrect ? 1 : 0);
                 updates.totalPredictionsPhase2 = increment(1);
               } else {
@@ -219,7 +229,9 @@ export function useMatches() {
                 const updates = {
                   totalPredictions: increment(1),
                 };
-                if (isPhase2) {
+                if (isPhase3) {
+                  updates.totalPredictionsPhase3 = increment(1);
+                } else if (isPhase2) {
                   updates.totalPredictionsPhase2 = increment(1);
                 } else {
                   updates.totalPredictionsPhase1 = increment(1);
@@ -324,6 +336,7 @@ export function useMatches() {
                 const votedUserIds = new Set();
 
                 const isPhase2 = isPhase2Match(dbMatch.group);
+                const isPhase3 = isPhase3Match(dbMatch.group);
                 if (!votesSnapshot.empty) {
                   for (const voteDoc of votesSnapshot.docs) {
                     const voteData = voteDoc.data();
@@ -337,7 +350,10 @@ export function useMatches() {
                       correctPredictions: increment(isCorrect ? 1 : 0),
                       totalPredictions: increment(1),
                     };
-                    if (isPhase2) {
+                    if (isPhase3) {
+                      updates.correctPredictionsPhase3 = increment(isCorrect ? 1 : 0);
+                      updates.totalPredictionsPhase3 = increment(1);
+                    } else if (isPhase2) {
                       updates.correctPredictionsPhase2 = increment(isCorrect ? 1 : 0);
                       updates.totalPredictionsPhase2 = increment(1);
                     } else {
@@ -367,7 +383,9 @@ export function useMatches() {
                       const updates = {
                         totalPredictions: increment(1),
                       };
-                      if (isPhase2) {
+                      if (isPhase3) {
+                        updates.totalPredictionsPhase3 = increment(1);
+                      } else if (isPhase2) {
                         updates.totalPredictionsPhase2 = increment(1);
                       } else {
                         updates.totalPredictionsPhase1 = increment(1);

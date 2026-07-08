@@ -65,6 +65,8 @@ export function AuthProvider({ children }) {
               totalPredictionsPhase1: 0,
               correctPredictionsPhase2: 0,
               totalPredictionsPhase2: 0,
+              correctPredictionsPhase3: 0,
+              totalPredictionsPhase3: 0,
               createdAt: serverTimestamp(),
               isAdmin: emailIsAdmin,
             });
@@ -120,6 +122,8 @@ export function AuthProvider({ children }) {
         totalPredictionsPhase1: 0,
         correctPredictionsPhase2: 0,
         totalPredictionsPhase2: 0,
+        correctPredictionsPhase3: 0,
+        totalPredictionsPhase3: 0,
         createdAt: serverTimestamp(),
         isAdmin: emailIsAdmin,
       }, { merge: true });

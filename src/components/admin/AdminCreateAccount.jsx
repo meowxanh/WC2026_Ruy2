@@ -107,6 +107,8 @@ export default function AdminCreateAccount() {
         totalPredictionsPhase1: 0,
         correctPredictionsPhase2: 0,
         totalPredictionsPhase2: 0,
+        correctPredictionsPhase3: 0,
+        totalPredictionsPhase3: 0,
         createdAt: serverTimestamp(),
         isAdmin: false,
       });
