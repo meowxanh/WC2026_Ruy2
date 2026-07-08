@@ -10,6 +10,7 @@ import {
   getDocs,
   writeBatch,
   increment,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { seedMatches } from "../data/seedMatches";
@@ -73,6 +74,33 @@ export function useMatches() {
                 ? doc.data().matchDate.toDate()
                 : new Date(doc.data().matchDate),
             }));
+
+            // Tự động đẩy các trận đấu còn thiếu trong Firestore từ file seedMatches
+            const dbMatchIds = new Set(data.map((m) => m.id));
+            const missingMatches = seedMatches.filter((m) => !dbMatchIds.has(m.id));
+            if (missingMatches.length > 0) {
+              console.log(`Auto-seeding ${missingMatches.length} missing matches to Firestore...`);
+              const batch = writeBatch(db);
+              missingMatches.forEach((match) => {
+                const { id, matchDate, ...rest } = match;
+                const matchRef = doc(db, "matches", id);
+                batch.set(matchRef, {
+                  ...rest,
+                  matchDate: Timestamp.fromDate(
+                    matchDate instanceof Date ? matchDate : new Date(matchDate)
+                  ),
+                });
+              });
+              batch
+                .commit()
+                .then(() => {
+                  console.log("Auto-seeding matches success!");
+                })
+                .catch((err) => {
+                  console.error("Auto-seeding matches error:", err);
+                });
+            }
+
             setMatches(data);
             setUsingLocal(false);
           }
