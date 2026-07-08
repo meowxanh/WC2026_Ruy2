@@ -908,4 +908,40 @@ export const seedMatches = [
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
   },
+
+  // ========================================
+  //  QUARTER-FINALS (VÒNG 8 ĐỘI / TỨ KẾT) — July 9 – July 11
+  // ========================================
+  {
+    id: "QF_1",
+    teamA: team(T.FRA), teamB: team(T.MAR),
+    group: "Tứ kết", matchDate: new Date("2026-07-10T03:00:00+07:00"),
+    venue: "Gillette Stadium (Boston)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "QF_2",
+    teamA: team(T.ESP), teamB: team(T.BEL),
+    group: "Tứ kết", matchDate: new Date("2026-07-11T02:00:00+07:00"),
+    venue: "SoFi Stadium (Los Angeles)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "QF_3",
+    teamA: team(T.NOR), teamB: team(T.ENG),
+    group: "Tứ kết", matchDate: new Date("2026-07-12T04:00:00+07:00"),
+    venue: "Hard Rock Stadium (Miami)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+  {
+    id: "QF_4",
+    teamA: team(T.ARG), teamB: team(T.SUI),
+    group: "Tứ kết", matchDate: new Date("2026-07-12T08:00:00+07:00"),
+    venue: "Kansas City Stadium (Kansas City)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
 ];
