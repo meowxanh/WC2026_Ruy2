@@ -24,18 +24,24 @@ const MEDAL_ICONS = ["🥇", "🥈", "🥉"];
 const isPhase2Match = (groupName) => {
   if (!groupName) return false;
   const name = groupName.toLowerCase();
-  return name.includes("16") || name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+  return name.includes("16");
+};
+
+const isPhase3Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
 };
 
 const sampleLeaderboard = [
-  { id: "1", displayName: "Nguyễn Văn A", photoURL: null, correctPredictions: 8, totalPredictions: 10, correctPredictionsPhase1: 5, totalPredictionsPhase1: 6, correctPredictionsPhase2: 3, totalPredictionsPhase2: 4 },
-  { id: "2", displayName: "Trần Thị B", photoURL: null, correctPredictions: 7, totalPredictions: 10, correctPredictionsPhase1: 4, totalPredictionsPhase1: 6, correctPredictionsPhase2: 3, totalPredictionsPhase2: 4 },
-  { id: "3", displayName: "Lê Hoàng C", photoURL: null, correctPredictions: 7, totalPredictions: 12, correctPredictionsPhase1: 4, totalPredictionsPhase1: 7, correctPredictionsPhase2: 3, totalPredictionsPhase2: 5 },
-  { id: "4", displayName: "Phạm Minh D", photoURL: null, correctPredictions: 6, totalPredictions: 10, correctPredictionsPhase1: 4, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
-  { id: "5", displayName: "Hoàng Anh E", photoURL: null, correctPredictions: 5, totalPredictions: 8, correctPredictionsPhase1: 3, totalPredictionsPhase1: 5, correctPredictionsPhase2: 2, totalPredictionsPhase2: 3 },
-  { id: "6", displayName: "Vũ Đức F", photoURL: null, correctPredictions: 5, totalPredictions: 10, correctPredictionsPhase1: 3, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
-  { id: "7", displayName: "Đỗ Thanh G", photoURL: null, correctPredictions: 4, totalPredictions: 9, correctPredictionsPhase1: 2, totalPredictionsPhase1: 5, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
-  { id: "8", displayName: "Bùi Quang H", photoURL: null, correctPredictions: 4, totalPredictions: 10, correctPredictionsPhase1: 2, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 4 },
+  { id: "1", displayName: "Nguyễn Văn A", photoURL: null, correctPredictions: 8, totalPredictions: 10, correctPredictionsPhase1: 5, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
+  { id: "2", displayName: "Trần Thị B", photoURL: null, correctPredictions: 7, totalPredictions: 10, correctPredictionsPhase1: 4, totalPredictionsPhase1: 6, correctPredictionsPhase2: 2, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
+  { id: "3", displayName: "Lê Hoàng C", photoURL: null, correctPredictions: 7, totalPredictions: 12, correctPredictionsPhase1: 4, totalPredictionsPhase1: 7, correctPredictionsPhase2: 2, totalPredictionsPhase2: 3, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
+  { id: "4", displayName: "Phạm Minh D", photoURL: null, correctPredictions: 6, totalPredictions: 10, correctPredictionsPhase1: 4, totalPredictionsPhase1: 6, correctPredictionsPhase2: 1, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
+  { id: "5", displayName: "Hoàng Anh E", photoURL: null, correctPredictions: 5, totalPredictions: 8, correctPredictionsPhase1: 3, totalPredictionsPhase1: 5, correctPredictionsPhase2: 1, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 1 },
+  { id: "6", displayName: "Vũ Đức F", photoURL: null, correctPredictions: 5, totalPredictions: 10, correctPredictionsPhase1: 3, totalPredictionsPhase1: 6, correctPredictionsPhase2: 1, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
+  { id: "7", displayName: "Đỗ Thanh G", photoURL: null, correctPredictions: 4, totalPredictions: 9, correctPredictionsPhase1: 2, totalPredictionsPhase1: 5, correctPredictionsPhase2: 1, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
+  { id: "8", displayName: "Bùi Quang H", photoURL: null, correctPredictions: 4, totalPredictions: 10, correctPredictionsPhase1: 2, totalPredictionsPhase1: 6, correctPredictionsPhase2: 1, totalPredictionsPhase2: 2, correctPredictionsPhase3: 1, totalPredictionsPhase3: 2 },
 ];
 
 export default function Leaderboard() {
@@ -44,7 +50,7 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [usingLocal, setUsingLocal] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
-  const [activeTab, setActiveTab] = useState("chung_cuoc"); // "chung_cuoc", "phase1", "phase2"
+  const [activeTab, setActiveTab] = useState("chung_cuoc"); // "chung_cuoc", "phase1", "phase2", "phase3"
 
   const handleRecalculateLeaderboard = async () => {
     if (
@@ -97,7 +103,7 @@ export default function Leaderboard() {
 
       // Lấy lại danh sách user sạch sau khi đã xóa
       const usersSnapshot = await getDocs(collection(db, "users"));
-      const userScores = {}; // userId -> { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 }
+      const userScores = {}; // userId -> { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 }
       const userCreatedDates = {}; // userId -> Date
 
       // Initialize only player users (exclude admins)
@@ -105,7 +111,7 @@ export default function Leaderboard() {
         const data = doc.data();
         const isPlayer = data.isAdmin !== true;
         if (isPlayer) {
-          userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 };
+          userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 };
           userCreatedDates[doc.id] = data.createdAt?.toDate 
             ? data.createdAt.toDate() 
             : (data.createdAt ? new Date(data.createdAt) : new Date(0));
@@ -131,13 +137,17 @@ export default function Leaderboard() {
         if (matchInfo) {
           const isCorrect = voteData.vote === matchInfo.result;
           const isPhase2 = isPhase2Match(matchInfo.group);
+          const isPhase3 = isPhase3Match(matchInfo.group);
 
           userScores[voteData.userId].total += 1;
           if (isCorrect) {
             userScores[voteData.userId].correct += 1;
           }
 
-          if (isPhase2) {
+          if (isPhase3) {
+            userScores[voteData.userId].total3 += 1;
+            if (isCorrect) userScores[voteData.userId].correct3 += 1;
+          } else if (isPhase2) {
             userScores[voteData.userId].total2 += 1;
             if (isCorrect) userScores[voteData.userId].correct2 += 1;
           } else {
@@ -170,8 +180,11 @@ export default function Leaderboard() {
 
             if (isAfterThreshold && wasCreatedBeforeKickoff) {
               const isPhase2 = isPhase2Match(matchInfo.group);
+              const isPhase3 = isPhase3Match(matchInfo.group);
               userScores[userId].total += 1;
-              if (isPhase2) {
+              if (isPhase3) {
+                userScores[userId].total3 += 1;
+              } else if (isPhase2) {
                 userScores[userId].total2 += 1;
               } else {
                 userScores[userId].total1 += 1;
@@ -193,6 +206,8 @@ export default function Leaderboard() {
             totalPredictionsPhase1: userScores[userId].total1,
             correctPredictionsPhase2: userScores[userId].correct2,
             totalPredictionsPhase2: userScores[userId].total2,
+            correctPredictionsPhase3: userScores[userId].correct3,
+            totalPredictionsPhase3: userScores[userId].total3,
           });
         } else {
           batch.update(userRef, {
@@ -202,6 +217,8 @@ export default function Leaderboard() {
             totalPredictionsPhase1: 0,
             correctPredictionsPhase2: 0,
             totalPredictionsPhase2: 0,
+            correctPredictionsPhase3: 0,
+            totalPredictionsPhase3: 0,
           });
         }
       }
@@ -275,7 +292,7 @@ export default function Leaderboard() {
             const data = doc.data();
             const isPlayer = data.isAdmin !== true;
             if (isPlayer) {
-              userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 };
+              userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 };
               userCreatedDates[doc.id] = data.createdAt?.toDate 
                 ? data.createdAt.toDate() 
                 : (data.createdAt ? new Date(data.createdAt) : new Date(0));
@@ -301,13 +318,17 @@ export default function Leaderboard() {
             if (matchInfo) {
               const isCorrect = voteData.vote === matchInfo.result;
               const isPhase2 = isPhase2Match(matchInfo.group);
+              const isPhase3 = isPhase3Match(matchInfo.group);
 
               userScores[voteData.userId].total += 1;
               if (isCorrect) {
                 userScores[voteData.userId].correct += 1;
               }
 
-              if (isPhase2) {
+              if (isPhase3) {
+                userScores[voteData.userId].total3 += 1;
+                if (isCorrect) userScores[voteData.userId].correct3 += 1;
+              } else if (isPhase2) {
                 userScores[voteData.userId].total2 += 1;
                 if (isCorrect) userScores[voteData.userId].correct2 += 1;
               } else {
@@ -341,8 +362,11 @@ export default function Leaderboard() {
 
                 if (isAfterThreshold && wasCreatedBeforeKickoff) {
                   const isPhase2 = isPhase2Match(matchInfo.group);
+                  const isPhase3 = isPhase3Match(matchInfo.group);
                   userScores[userId].total += 1;
-                  if (isPhase2) {
+                  if (isPhase3) {
+                    userScores[userId].total3 += 1;
+                  } else if (isPhase2) {
                     userScores[userId].total2 += 1;
                   } else {
                     userScores[userId].total1 += 1;
@@ -356,7 +380,7 @@ export default function Leaderboard() {
           for (const userDoc of usersSnapshot.docs) {
             const userId = userDoc.id;
             const userData = userDoc.data();
-            const computed = userScores[userId] || { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0 };
+            const computed = userScores[userId] || { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 };
             
             if (
               userData.correctPredictions !== computed.correct ||
@@ -364,7 +388,9 @@ export default function Leaderboard() {
               userData.correctPredictionsPhase1 !== computed.correct1 ||
               userData.totalPredictionsPhase1 !== computed.total1 ||
               userData.correctPredictionsPhase2 !== computed.correct2 ||
-              userData.totalPredictionsPhase2 !== computed.total2
+              userData.totalPredictionsPhase2 !== computed.total2 ||
+              userData.correctPredictionsPhase3 !== computed.correct3 ||
+              userData.totalPredictionsPhase3 !== computed.total3
             ) {
               const userRef = doc(db, "users", userId);
               batch.update(userRef, {
@@ -374,6 +400,8 @@ export default function Leaderboard() {
                 totalPredictionsPhase1: computed.total1,
                 correctPredictionsPhase2: computed.correct2,
                 totalPredictionsPhase2: computed.total2,
+                correctPredictionsPhase3: computed.correct3,
+                totalPredictionsPhase3: computed.total3,
               });
               needsUpdate = true;
             }
@@ -407,6 +435,8 @@ export default function Leaderboard() {
         return u.totalPredictionsPhase1 > 0 || (usingLocal && u.totalPredictionsPhase1 !== undefined);
       } else if (activeTab === "phase2") {
         return u.totalPredictionsPhase2 > 0 || (usingLocal && u.totalPredictionsPhase2 !== undefined);
+      } else if (activeTab === "phase3") {
+        return u.totalPredictionsPhase3 > 0 || (usingLocal && u.totalPredictionsPhase3 !== undefined);
       } else {
         return u.totalPredictions > 0 || (usingLocal && u.totalPredictions !== undefined);
       }
@@ -423,6 +453,11 @@ export default function Leaderboard() {
         totalA = a.totalPredictionsPhase2 || 0;
         correctB = b.correctPredictionsPhase2 || 0;
         totalB = b.totalPredictionsPhase2 || 0;
+      } else if (activeTab === "phase3") {
+        correctA = a.correctPredictionsPhase3 || 0;
+        totalA = a.totalPredictionsPhase3 || 0;
+        correctB = b.correctPredictionsPhase3 || 0;
+        totalB = b.totalPredictionsPhase3 || 0;
       } else {
         correctA = a.correctPredictions || 0;
         totalA = a.totalPredictions || 0;
@@ -452,21 +487,21 @@ export default function Leaderboard() {
       <div className="leaderboard-tabs" style={{
         display: "flex",
         justifyContent: "center",
-        gap: "10px",
+        gap: "8px",
         marginBottom: "30px",
         padding: "4px",
         background: "rgba(255, 255, 255, 0.02)",
         borderRadius: "var(--radius-lg)",
         border: "1px solid var(--border-subtle)",
-        maxWidth: "520px",
+        maxWidth: "650px",
         margin: "0 auto 30px auto"
       }}>
         <button
           onClick={() => setActiveTab("chung_cuoc")}
           style={{
             flex: 1,
-            padding: "10px 14px",
-            fontSize: "0.82rem",
+            padding: "10px 8px",
+            fontSize: "0.78rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -483,8 +518,8 @@ export default function Leaderboard() {
           onClick={() => setActiveTab("phase1")}
           style={{
             flex: 1,
-            padding: "10px 14px",
-            fontSize: "0.82rem",
+            padding: "10px 8px",
+            fontSize: "0.78rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -501,8 +536,8 @@ export default function Leaderboard() {
           onClick={() => setActiveTab("phase2")}
           style={{
             flex: 1,
-            padding: "10px 14px",
-            fontSize: "0.82rem",
+            padding: "10px 8px",
+            fontSize: "0.78rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -513,7 +548,25 @@ export default function Leaderboard() {
           }}
           className="lb-tab-btn"
         >
-          🔥 Vòng 16 Trở Đi
+          ⚽ Vòng 16 Đội
+        </button>
+        <button
+          onClick={() => setActiveTab("phase3")}
+          style={{
+            flex: 1,
+            padding: "10px 8px",
+            fontSize: "0.78rem",
+            fontWeight: "600",
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: activeTab === "phase3" ? "var(--gradient-primary)" : "transparent",
+            color: activeTab === "phase3" ? "#0a0e1a" : "var(--text-secondary)"
+          }}
+          className="lb-tab-btn"
+        >
+          🔥 Vòng 8 Trở Đi
         </button>
       </div>
 
@@ -572,6 +625,10 @@ export default function Leaderboard() {
                   const correct = u.correctPredictionsPhase2 || 0;
                   const total = u.totalPredictionsPhase2 || 0;
                   return { correct, total, wrong: total - correct };
+                } else if (activeTab === "phase3") {
+                  const correct = u.correctPredictionsPhase3 || 0;
+                  const total = u.totalPredictionsPhase3 || 0;
+                  return { correct, total, wrong: total - correct };
                 } else {
                   const correct = u.correctPredictions || 0;
                   const total = u.totalPredictions || 0;
@@ -618,12 +675,16 @@ export default function Leaderboard() {
                 ? (user.correctPredictionsPhase1 || 0)
                 : activeTab === "phase2"
                 ? (user.correctPredictionsPhase2 || 0)
+                : activeTab === "phase3"
+                ? (user.correctPredictionsPhase3 || 0)
                 : (user.correctPredictions || 0);
 
               const total = activeTab === "phase1"
                 ? (user.totalPredictionsPhase1 || 0)
                 : activeTab === "phase2"
                 ? (user.totalPredictionsPhase2 || 0)
+                : activeTab === "phase3"
+                ? (user.totalPredictionsPhase3 || 0)
                 : (user.totalPredictions || 0);
 
               const wrongCount = total - correct;
