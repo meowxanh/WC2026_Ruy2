@@ -944,4 +944,16 @@ export const seedMatches = [
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
   },
+
+  // ========================================
+  //  SEMI-FINALS (VÒNG BÁN KẾT) — July 14 – July 15
+  // ========================================
+  {
+    id: "SF_1",
+    teamA: team(T.FRA), teamB: team(T.ESP),
+    group: "Bán kết", matchDate: new Date("2026-07-15T02:00:00+07:00"),
+    venue: "AT&T Stadium (Dallas)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
 ];
