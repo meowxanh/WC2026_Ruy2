@@ -956,4 +956,12 @@ export const seedMatches = [
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
   },
+  {
+    id: "SF_2",
+    teamA: team(T.ARG), teamB: team(T.ENG),
+    group: "Bán kết", matchDate: new Date("2026-07-16T02:00:00+07:00"),
+    venue: "Mercedes-Benz Stadium (Atlanta)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
 ];
