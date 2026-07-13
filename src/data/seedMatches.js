@@ -70,6 +70,11 @@ const T = {
   CRO: { name: "Croatia", code: "hr" },
   GHA: { name: "Ghana", code: "gh" },
   PAN: { name: "Panama", code: "pa" },
+  // Placeholders for knockout stage
+  TBD1: { name: "Thắng Bán kết 1", code: "un" },
+  TBD2: { name: "Thắng Bán kết 2", code: "un" },
+  TBD3: { name: "Thua Bán kết 1", code: "un" },
+  TBD4: { name: "Thua Bán kết 2", code: "un" },
 };
 
 const team = (t) => ({
@@ -961,6 +966,30 @@ export const seedMatches = [
     teamA: team(T.ARG), teamB: team(T.ENG),
     group: "Bán kết", matchDate: new Date("2026-07-16T02:00:00+07:00"),
     venue: "Mercedes-Benz Stadium (Atlanta)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+
+  // ========================================
+  //  THIRD-PLACE PLAY-OFF (TRANH HẠNG BA) — July 18
+  // ========================================
+  {
+    id: "3RD_PLACE",
+    teamA: team(T.TBD3), teamB: team(T.TBD4),
+    group: "Tranh hạng ba", matchDate: new Date("2026-07-19T03:00:00+07:00"),
+    venue: "Hard Rock Stadium (Miami)", status: "upcoming",
+    result: null, scoreA: null, scoreB: null,
+    votes: emptyVotes(),
+  },
+
+  // ========================================
+  //  FINAL (CHUNG KẾT) — July 19
+  // ========================================
+  {
+    id: "FINAL",
+    teamA: team(T.TBD1), teamB: team(T.TBD2),
+    group: "Chung kết", matchDate: new Date("2026-07-20T02:00:00+07:00"),
+    venue: "MetLife Stadium (New York New Jersey)", status: "upcoming",
     result: null, scoreA: null, scoreB: null,
     votes: emptyVotes(),
   },

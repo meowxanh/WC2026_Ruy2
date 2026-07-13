@@ -202,6 +202,21 @@ export default function MatchCard({ match }) {
           }
         }
 
+        // Tự động đẩy đội thắng vào Chung kết, đội thua vào Tranh hạng ba
+        if (match.id === "SF_1" || match.id === "SF_2") {
+          const isTeamAWon = result === "teamA";
+          const winner = isTeamAWon ? match.teamA : match.teamB;
+          const loser = isTeamAWon ? match.teamB : match.teamA;
+          
+          if (match.id === "SF_1") {
+            batch.update(doc(db, "matches", "FINAL"), { teamA: winner });
+            batch.update(doc(db, "matches", "3RD_PLACE"), { teamA: loser });
+          } else {
+            batch.update(doc(db, "matches", "FINAL"), { teamB: winner });
+            batch.update(doc(db, "matches", "3RD_PLACE"), { teamB: loser });
+          }
+        }
+
         await batch.commit();
       }
 
@@ -275,6 +290,28 @@ export default function MatchCard({ match }) {
               }
               batch.update(userRef, updates);
             }
+          }
+        }
+
+        // Hoàn tác: đổi đội trong Chung kết và Tranh hạng ba về TBD
+        if (match.id === "SF_1" || match.id === "SF_2") {
+          const TBD_TEAMS = {
+            SF_1: {
+              winner: { name: "Thắng Bán kết 1", code: "un", flag: "https://flagcdn.com/w80/un.png" },
+              loser: { name: "Thua Bán kết 1", code: "un", flag: "https://flagcdn.com/w80/un.png" }
+            },
+            SF_2: {
+              winner: { name: "Thắng Bán kết 2", code: "un", flag: "https://flagcdn.com/w80/un.png" },
+              loser: { name: "Thua Bán kết 2", code: "un", flag: "https://flagcdn.com/w80/un.png" }
+            }
+          };
+          const currentTBD = TBD_TEAMS[match.id];
+          if (match.id === "SF_1") {
+            batch.update(doc(db, "matches", "FINAL"), { teamA: currentTBD.winner });
+            batch.update(doc(db, "matches", "3RD_PLACE"), { teamA: currentTBD.loser });
+          } else {
+            batch.update(doc(db, "matches", "FINAL"), { teamB: currentTBD.winner });
+            batch.update(doc(db, "matches", "3RD_PLACE"), { teamB: currentTBD.loser });
           }
         }
 

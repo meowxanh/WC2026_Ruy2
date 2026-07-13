@@ -241,6 +241,21 @@ export function useMatches() {
             }
           }
 
+          // Tự động đẩy đội thắng vào Chung kết, đội thua vào Tranh hạng ba
+          if (match.id === "SF_1" || match.id === "SF_2") {
+            const isTeamAWon = result === "teamA";
+            const winner = isTeamAWon ? match.teamA : match.teamB;
+            const loser = isTeamAWon ? match.teamB : match.teamA;
+            
+            if (match.id === "SF_1") {
+              batch.update(doc(db, "matches", "FINAL"), { teamA: winner });
+              batch.update(doc(db, "matches", "3RD_PLACE"), { teamA: loser });
+            } else {
+              batch.update(doc(db, "matches", "FINAL"), { teamB: winner });
+              batch.update(doc(db, "matches", "3RD_PLACE"), { teamB: loser });
+            }
+          }
+
           await batch.commit();
           console.log(`Auto-finished match ${match.id} and calculated points (applying threshold & reg date bounds)!`);
         } catch (err) {
@@ -392,6 +407,21 @@ export function useMatches() {
                       }
                       batch.update(userRef, updates);
                     }
+                  }
+                }
+
+                // Tự động đẩy đội thắng vào Chung kết, đội thua vào Tranh hạng ba
+                if (liveMatch.id === "SF_1" || liveMatch.id === "SF_2") {
+                  const isTeamAWon = result === "teamA";
+                  const winner = isTeamAWon ? dbMatch.teamA : dbMatch.teamB;
+                  const loser = isTeamAWon ? dbMatch.teamB : dbMatch.teamA;
+                  
+                  if (liveMatch.id === "SF_1") {
+                    batch.update(doc(db, "matches", "FINAL"), { teamA: winner });
+                    batch.update(doc(db, "matches", "3RD_PLACE"), { teamA: loser });
+                  } else {
+                    batch.update(doc(db, "matches", "FINAL"), { teamB: winner });
+                    batch.update(doc(db, "matches", "3RD_PLACE"), { teamB: loser });
                   }
                 }
 
