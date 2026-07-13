@@ -30,7 +30,19 @@ const isPhase2Match = (groupName) => {
 const isPhase3Match = (groupName) => {
   if (!groupName) return false;
   const name = groupName.toLowerCase();
-  return name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+  return name.includes("tứ kết");
+};
+
+const isPhase4Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("bán kết");
+};
+
+const isPhase5Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("chung kết") || name.includes("hạng ba");
 };
 
 const sampleLeaderboard = [
@@ -103,7 +115,7 @@ export default function Leaderboard() {
 
       // Lấy lại danh sách user sạch sau khi đã xóa
       const usersSnapshot = await getDocs(collection(db, "users"));
-      const userScores = {}; // userId -> { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 }
+      const userScores = {}; // userId -> { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0, correct4: 0, total4: 0, correct5: 0, total5: 0 }
       const userCreatedDates = {}; // userId -> Date
 
       // Initialize only player users (exclude admins)
@@ -111,7 +123,7 @@ export default function Leaderboard() {
         const data = doc.data();
         const isPlayer = data.isAdmin !== true;
         if (isPlayer) {
-          userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 };
+          userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0, correct4: 0, total4: 0, correct5: 0, total5: 0 };
           userCreatedDates[doc.id] = data.createdAt?.toDate 
             ? data.createdAt.toDate() 
             : (data.createdAt ? new Date(data.createdAt) : new Date(0));
@@ -138,13 +150,21 @@ export default function Leaderboard() {
           const isCorrect = voteData.vote === matchInfo.result;
           const isPhase2 = isPhase2Match(matchInfo.group);
           const isPhase3 = isPhase3Match(matchInfo.group);
+          const isPhase4 = isPhase4Match(matchInfo.group);
+          const isPhase5 = isPhase5Match(matchInfo.group);
 
           userScores[voteData.userId].total += 1;
           if (isCorrect) {
             userScores[voteData.userId].correct += 1;
           }
 
-          if (isPhase3) {
+          if (isPhase5) {
+            userScores[voteData.userId].total5 += 1;
+            if (isCorrect) userScores[voteData.userId].correct5 += 1;
+          } else if (isPhase4) {
+            userScores[voteData.userId].total4 += 1;
+            if (isCorrect) userScores[voteData.userId].correct4 += 1;
+          } else if (isPhase3) {
             userScores[voteData.userId].total3 += 1;
             if (isCorrect) userScores[voteData.userId].correct3 += 1;
           } else if (isPhase2) {
@@ -181,8 +201,14 @@ export default function Leaderboard() {
             if (isAfterThreshold && wasCreatedBeforeKickoff) {
               const isPhase2 = isPhase2Match(matchInfo.group);
               const isPhase3 = isPhase3Match(matchInfo.group);
+              const isPhase4 = isPhase4Match(matchInfo.group);
+              const isPhase5 = isPhase5Match(matchInfo.group);
               userScores[userId].total += 1;
-              if (isPhase3) {
+              if (isPhase5) {
+                userScores[userId].total5 += 1;
+              } else if (isPhase4) {
+                userScores[userId].total4 += 1;
+              } else if (isPhase3) {
                 userScores[userId].total3 += 1;
               } else if (isPhase2) {
                 userScores[userId].total2 += 1;
@@ -208,6 +234,10 @@ export default function Leaderboard() {
             totalPredictionsPhase2: userScores[userId].total2,
             correctPredictionsPhase3: userScores[userId].correct3,
             totalPredictionsPhase3: userScores[userId].total3,
+            correctPredictionsPhase4: userScores[userId].correct4,
+            totalPredictionsPhase4: userScores[userId].total4,
+            correctPredictionsPhase5: userScores[userId].correct5,
+            totalPredictionsPhase5: userScores[userId].total5,
           });
         } else {
           batch.update(userRef, {
@@ -219,6 +249,10 @@ export default function Leaderboard() {
             totalPredictionsPhase2: 0,
             correctPredictionsPhase3: 0,
             totalPredictionsPhase3: 0,
+            correctPredictionsPhase4: 0,
+            totalPredictionsPhase4: 0,
+            correctPredictionsPhase5: 0,
+            totalPredictionsPhase5: 0,
           });
         }
       }
@@ -292,7 +326,7 @@ export default function Leaderboard() {
             const data = doc.data();
             const isPlayer = data.isAdmin !== true;
             if (isPlayer) {
-              userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 };
+              userScores[doc.id] = { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0, correct4: 0, total4: 0, correct5: 0, total5: 0 };
               userCreatedDates[doc.id] = data.createdAt?.toDate 
                 ? data.createdAt.toDate() 
                 : (data.createdAt ? new Date(data.createdAt) : new Date(0));
@@ -319,13 +353,21 @@ export default function Leaderboard() {
               const isCorrect = voteData.vote === matchInfo.result;
               const isPhase2 = isPhase2Match(matchInfo.group);
               const isPhase3 = isPhase3Match(matchInfo.group);
+              const isPhase4 = isPhase4Match(matchInfo.group);
+              const isPhase5 = isPhase5Match(matchInfo.group);
 
               userScores[voteData.userId].total += 1;
               if (isCorrect) {
                 userScores[voteData.userId].correct += 1;
               }
 
-              if (isPhase3) {
+              if (isPhase5) {
+                userScores[voteData.userId].total5 += 1;
+                if (isCorrect) userScores[voteData.userId].correct5 += 1;
+              } else if (isPhase4) {
+                userScores[voteData.userId].total4 += 1;
+                if (isCorrect) userScores[voteData.userId].correct4 += 1;
+              } else if (isPhase3) {
                 userScores[voteData.userId].total3 += 1;
                 if (isCorrect) userScores[voteData.userId].correct3 += 1;
               } else if (isPhase2) {
@@ -363,8 +405,14 @@ export default function Leaderboard() {
                 if (isAfterThreshold && wasCreatedBeforeKickoff) {
                   const isPhase2 = isPhase2Match(matchInfo.group);
                   const isPhase3 = isPhase3Match(matchInfo.group);
+                  const isPhase4 = isPhase4Match(matchInfo.group);
+                  const isPhase5 = isPhase5Match(matchInfo.group);
                   userScores[userId].total += 1;
-                  if (isPhase3) {
+                  if (isPhase5) {
+                    userScores[userId].total5 += 1;
+                  } else if (isPhase4) {
+                    userScores[userId].total4 += 1;
+                  } else if (isPhase3) {
                     userScores[userId].total3 += 1;
                   } else if (isPhase2) {
                     userScores[userId].total2 += 1;
@@ -380,7 +428,7 @@ export default function Leaderboard() {
           for (const userDoc of usersSnapshot.docs) {
             const userId = userDoc.id;
             const userData = userDoc.data();
-            const computed = userScores[userId] || { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0 };
+            const computed = userScores[userId] || { correct: 0, total: 0, correct1: 0, total1: 0, correct2: 0, total2: 0, correct3: 0, total3: 0, correct4: 0, total4: 0, correct5: 0, total5: 0 };
             
             if (
               userData.correctPredictions !== computed.correct ||
@@ -390,7 +438,11 @@ export default function Leaderboard() {
               userData.correctPredictionsPhase2 !== computed.correct2 ||
               userData.totalPredictionsPhase2 !== computed.total2 ||
               userData.correctPredictionsPhase3 !== computed.correct3 ||
-              userData.totalPredictionsPhase3 !== computed.total3
+              userData.totalPredictionsPhase3 !== computed.total3 ||
+              userData.correctPredictionsPhase4 !== computed.correct4 ||
+              userData.totalPredictionsPhase4 !== computed.total4 ||
+              userData.correctPredictionsPhase5 !== computed.correct5 ||
+              userData.totalPredictionsPhase5 !== computed.total5
             ) {
               const userRef = doc(db, "users", userId);
               batch.update(userRef, {
@@ -402,6 +454,10 @@ export default function Leaderboard() {
                 totalPredictionsPhase2: computed.total2,
                 correctPredictionsPhase3: computed.correct3,
                 totalPredictionsPhase3: computed.total3,
+                correctPredictionsPhase4: computed.correct4,
+                totalPredictionsPhase4: computed.total4,
+                correctPredictionsPhase5: computed.correct5,
+                totalPredictionsPhase5: computed.total5,
               });
               needsUpdate = true;
             }
@@ -437,6 +493,10 @@ export default function Leaderboard() {
         return u.totalPredictionsPhase2 > 0 || (usingLocal && u.totalPredictionsPhase2 !== undefined);
       } else if (activeTab === "phase3") {
         return u.totalPredictionsPhase3 > 0 || (usingLocal && u.totalPredictionsPhase3 !== undefined);
+      } else if (activeTab === "phase4") {
+        return u.totalPredictionsPhase4 > 0 || (usingLocal && u.totalPredictionsPhase4 !== undefined);
+      } else if (activeTab === "phase5") {
+        return u.totalPredictionsPhase5 > 0 || (usingLocal && u.totalPredictionsPhase5 !== undefined);
       } else {
         return u.totalPredictions > 0 || (usingLocal && u.totalPredictions !== undefined);
       }
@@ -458,6 +518,16 @@ export default function Leaderboard() {
         totalA = a.totalPredictionsPhase3 || 0;
         correctB = b.correctPredictionsPhase3 || 0;
         totalB = b.totalPredictionsPhase3 || 0;
+      } else if (activeTab === "phase4") {
+        correctA = a.correctPredictionsPhase4 || 0;
+        totalA = a.totalPredictionsPhase4 || 0;
+        correctB = b.correctPredictionsPhase4 || 0;
+        totalB = b.totalPredictionsPhase4 || 0;
+      } else if (activeTab === "phase5") {
+        correctA = a.correctPredictionsPhase5 || 0;
+        totalA = a.totalPredictionsPhase5 || 0;
+        correctB = b.correctPredictionsPhase5 || 0;
+        totalB = b.totalPredictionsPhase5 || 0;
       } else {
         correctA = a.correctPredictions || 0;
         totalA = a.totalPredictions || 0;
@@ -487,21 +557,21 @@ export default function Leaderboard() {
       <div className="leaderboard-tabs" style={{
         display: "flex",
         justifyContent: "center",
-        gap: "8px",
+        flexWrap: "wrap",
+        gap: "6px",
         marginBottom: "30px",
-        padding: "4px",
+        padding: "6px",
         background: "rgba(255, 255, 255, 0.02)",
         borderRadius: "var(--radius-lg)",
         border: "1px solid var(--border-subtle)",
-        maxWidth: "650px",
+        maxWidth: "850px",
         margin: "0 auto 30px auto"
       }}>
         <button
           onClick={() => setActiveTab("chung_cuoc")}
           style={{
-            flex: 1,
-            padding: "10px 8px",
-            fontSize: "0.78rem",
+            padding: "8px 10px",
+            fontSize: "0.75rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -517,9 +587,8 @@ export default function Leaderboard() {
         <button
           onClick={() => setActiveTab("phase1")}
           style={{
-            flex: 1,
-            padding: "10px 8px",
-            fontSize: "0.78rem",
+            padding: "8px 10px",
+            fontSize: "0.75rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -535,9 +604,8 @@ export default function Leaderboard() {
         <button
           onClick={() => setActiveTab("phase2")}
           style={{
-            flex: 1,
-            padding: "10px 8px",
-            fontSize: "0.78rem",
+            padding: "8px 10px",
+            fontSize: "0.75rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -553,9 +621,8 @@ export default function Leaderboard() {
         <button
           onClick={() => setActiveTab("phase3")}
           style={{
-            flex: 1,
-            padding: "10px 8px",
-            fontSize: "0.78rem",
+            padding: "8px 10px",
+            fontSize: "0.75rem",
             fontWeight: "600",
             borderRadius: "var(--radius-md)",
             border: "none",
@@ -566,7 +633,41 @@ export default function Leaderboard() {
           }}
           className="lb-tab-btn"
         >
-          🔥 Vòng 8 Trở Đi
+          🔥 Vòng 8 Đội
+        </button>
+        <button
+          onClick={() => setActiveTab("phase4")}
+          style={{
+            padding: "8px 10px",
+            fontSize: "0.75rem",
+            fontWeight: "600",
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: activeTab === "phase4" ? "var(--gradient-primary)" : "transparent",
+            color: activeTab === "phase4" ? "#0a0e1a" : "var(--text-secondary)"
+          }}
+          className="lb-tab-btn"
+        >
+          📢 Bán Kết
+        </button>
+        <button
+          onClick={() => setActiveTab("phase5")}
+          style={{
+            padding: "8px 10px",
+            fontSize: "0.75rem",
+            fontWeight: "600",
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: activeTab === "phase5" ? "var(--gradient-primary)" : "transparent",
+            color: activeTab === "phase5" ? "#0a0e1a" : "var(--text-secondary)"
+          }}
+          className="lb-tab-btn"
+        >
+          🏁 Chung Kết + Hạng Ba
         </button>
       </div>
 
@@ -629,6 +730,14 @@ export default function Leaderboard() {
                   const correct = u.correctPredictionsPhase3 || 0;
                   const total = u.totalPredictionsPhase3 || 0;
                   return { correct, total, wrong: total - correct };
+                } else if (activeTab === "phase4") {
+                  const correct = u.correctPredictionsPhase4 || 0;
+                  const total = u.totalPredictionsPhase4 || 0;
+                  return { correct, total, wrong: total - correct };
+                } else if (activeTab === "phase5") {
+                  const correct = u.correctPredictionsPhase5 || 0;
+                  const total = u.totalPredictionsPhase5 || 0;
+                  return { correct, total, wrong: total - correct };
                 } else {
                   const correct = u.correctPredictions || 0;
                   const total = u.totalPredictions || 0;
@@ -677,6 +786,10 @@ export default function Leaderboard() {
                 ? (user.correctPredictionsPhase2 || 0)
                 : activeTab === "phase3"
                 ? (user.correctPredictionsPhase3 || 0)
+                : activeTab === "phase4"
+                ? (user.correctPredictionsPhase4 || 0)
+                : activeTab === "phase5"
+                ? (user.correctPredictionsPhase5 || 0)
                 : (user.correctPredictions || 0);
 
               const total = activeTab === "phase1"
@@ -685,6 +798,10 @@ export default function Leaderboard() {
                 ? (user.totalPredictionsPhase2 || 0)
                 : activeTab === "phase3"
                 ? (user.totalPredictionsPhase3 || 0)
+                : activeTab === "phase4"
+                ? (user.totalPredictionsPhase4 || 0)
+                : activeTab === "phase5"
+                ? (user.totalPredictionsPhase5 || 0)
                 : (user.totalPredictions || 0);
 
               const wrongCount = total - correct;

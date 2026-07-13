@@ -27,7 +27,19 @@ const isPhase2Match = (groupName) => {
 const isPhase3Match = (groupName) => {
   if (!groupName) return false;
   const name = groupName.toLowerCase();
-  return name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+  return name.includes("tứ kết");
+};
+
+const isPhase4Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("bán kết");
+};
+
+const isPhase5Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("chung kết") || name.includes("hạng ba");
 };
 
 /**
@@ -181,6 +193,8 @@ export function useMatches() {
 
           const isPhase2 = isPhase2Match(match.group);
           const isPhase3 = isPhase3Match(match.group);
+          const isPhase4 = isPhase4Match(match.group);
+          const isPhase5 = isPhase5Match(match.group);
           if (!votesSnapshot.empty) {
             for (const voteDoc of votesSnapshot.docs) {
               const voteData = voteDoc.data();
@@ -194,7 +208,13 @@ export function useMatches() {
                 correctPredictions: increment(isCorrect ? 1 : 0),
                 totalPredictions: increment(1),
               };
-              if (isPhase3) {
+              if (isPhase5) {
+                updates.correctPredictionsPhase5 = increment(isCorrect ? 1 : 0);
+                updates.totalPredictionsPhase5 = increment(1);
+              } else if (isPhase4) {
+                updates.correctPredictionsPhase4 = increment(isCorrect ? 1 : 0);
+                updates.totalPredictionsPhase4 = increment(1);
+              } else if (isPhase3) {
                 updates.correctPredictionsPhase3 = increment(isCorrect ? 1 : 0);
                 updates.totalPredictionsPhase3 = increment(1);
               } else if (isPhase2) {
@@ -229,7 +249,11 @@ export function useMatches() {
                 const updates = {
                   totalPredictions: increment(1),
                 };
-                if (isPhase3) {
+                if (isPhase5) {
+                  updates.totalPredictionsPhase5 = increment(1);
+                } else if (isPhase4) {
+                  updates.totalPredictionsPhase4 = increment(1);
+                } else if (isPhase3) {
                   updates.totalPredictionsPhase3 = increment(1);
                 } else if (isPhase2) {
                   updates.totalPredictionsPhase2 = increment(1);
@@ -352,6 +376,8 @@ export function useMatches() {
 
                 const isPhase2 = isPhase2Match(dbMatch.group);
                 const isPhase3 = isPhase3Match(dbMatch.group);
+                const isPhase4 = isPhase4Match(dbMatch.group);
+                const isPhase5 = isPhase5Match(dbMatch.group);
                 if (!votesSnapshot.empty) {
                   for (const voteDoc of votesSnapshot.docs) {
                     const voteData = voteDoc.data();
@@ -365,7 +391,13 @@ export function useMatches() {
                       correctPredictions: increment(isCorrect ? 1 : 0),
                       totalPredictions: increment(1),
                     };
-                    if (isPhase3) {
+                    if (isPhase5) {
+                      updates.correctPredictionsPhase5 = increment(isCorrect ? 1 : 0);
+                      updates.totalPredictionsPhase5 = increment(1);
+                    } else if (isPhase4) {
+                      updates.correctPredictionsPhase4 = increment(isCorrect ? 1 : 0);
+                      updates.totalPredictionsPhase4 = increment(1);
+                    } else if (isPhase3) {
                       updates.correctPredictionsPhase3 = increment(isCorrect ? 1 : 0);
                       updates.totalPredictionsPhase3 = increment(1);
                     } else if (isPhase2) {
@@ -398,7 +430,11 @@ export function useMatches() {
                       const updates = {
                         totalPredictions: increment(1),
                       };
-                      if (isPhase3) {
+                      if (isPhase5) {
+                        updates.totalPredictionsPhase5 = increment(1);
+                      } else if (isPhase4) {
+                        updates.totalPredictionsPhase4 = increment(1);
+                      } else if (isPhase3) {
                         updates.totalPredictionsPhase3 = increment(1);
                       } else if (isPhase2) {
                         updates.totalPredictionsPhase2 = increment(1);

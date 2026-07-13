@@ -13,7 +13,19 @@ const isPhase2Match = (groupName) => {
 const isPhase3Match = (groupName) => {
   if (!groupName) return false;
   const name = groupName.toLowerCase();
-  return name.includes("tứ kết") || name.includes("bán kết") || name.includes("hạng ba") || name.includes("chung kết");
+  return name.includes("tứ kết");
+};
+
+const isPhase4Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("bán kết");
+};
+
+const isPhase5Match = (groupName) => {
+  if (!groupName) return false;
+  const name = groupName.toLowerCase();
+  return name.includes("chung kết") || name.includes("hạng ba");
 };
 
 /**
@@ -124,6 +136,8 @@ export default function MatchCard({ match }) {
 
         const isPhase2 = isPhase2Match(match.group);
         const isPhase3 = isPhase3Match(match.group);
+        const isPhase4 = isPhase4Match(match.group);
+        const isPhase5 = isPhase5Match(match.group);
         if (!votesSnapshot.empty) {
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
@@ -154,7 +168,13 @@ export default function MatchCard({ match }) {
               correctPredictions: increment(correctInc),
               totalPredictions: increment(totalInc)
             };
-            if (isPhase3) {
+            if (isPhase5) {
+              updates.correctPredictionsPhase5 = increment(correctInc);
+              updates.totalPredictionsPhase5 = increment(totalInc);
+            } else if (isPhase4) {
+              updates.correctPredictionsPhase4 = increment(correctInc);
+              updates.totalPredictionsPhase4 = increment(totalInc);
+            } else if (isPhase3) {
               updates.correctPredictionsPhase3 = increment(correctInc);
               updates.totalPredictionsPhase3 = increment(totalInc);
             } else if (isPhase2) {
@@ -190,7 +210,11 @@ export default function MatchCard({ match }) {
               const updates = {
                 totalPredictions: increment(1)
               };
-              if (isPhase3) {
+              if (isPhase5) {
+                updates.totalPredictionsPhase5 = increment(1);
+              } else if (isPhase4) {
+                updates.totalPredictionsPhase4 = increment(1);
+              } else if (isPhase3) {
                 updates.totalPredictionsPhase3 = increment(1);
               } else if (isPhase2) {
                 updates.totalPredictionsPhase2 = increment(1);
@@ -230,6 +254,8 @@ export default function MatchCard({ match }) {
 
         const isPhase2 = isPhase2Match(match.group);
         const isPhase3 = isPhase3Match(match.group);
+        const isPhase4 = isPhase4Match(match.group);
+        const isPhase5 = isPhase5Match(match.group);
         if (!votesSnapshot.empty) {
           for (const voteDoc of votesSnapshot.docs) {
             const voteData = voteDoc.data();
@@ -244,7 +270,13 @@ export default function MatchCard({ match }) {
                 correctPredictions: increment(wasCorrect ? -1 : 0),
                 totalPredictions: increment(-1)
               };
-              if (isPhase3) {
+              if (isPhase5) {
+                updates.correctPredictionsPhase5 = increment(wasCorrect ? -1 : 0);
+                updates.totalPredictionsPhase5 = increment(-1);
+              } else if (isPhase4) {
+                updates.correctPredictionsPhase4 = increment(wasCorrect ? -1 : 0);
+                updates.totalPredictionsPhase4 = increment(-1);
+              } else if (isPhase3) {
                 updates.correctPredictionsPhase3 = increment(wasCorrect ? -1 : 0);
                 updates.totalPredictionsPhase3 = increment(-1);
               } else if (isPhase2) {
@@ -281,7 +313,11 @@ export default function MatchCard({ match }) {
               const updates = {
                 totalPredictions: increment(-1)
               };
-              if (isPhase3) {
+              if (isPhase5) {
+                updates.totalPredictionsPhase5 = increment(-1);
+              } else if (isPhase4) {
+                updates.totalPredictionsPhase4 = increment(-1);
+              } else if (isPhase3) {
                 updates.totalPredictionsPhase3 = increment(-1);
               } else if (isPhase2) {
                 updates.totalPredictionsPhase2 = increment(-1);
@@ -356,12 +392,20 @@ export default function MatchCard({ match }) {
           if (wasCorrect !== undefined && wasCorrect !== null) {
             const isPhase2 = isPhase2Match(match.group);
             const isPhase3 = isPhase3Match(match.group);
+            const isPhase4 = isPhase4Match(match.group);
+            const isPhase5 = isPhase5Match(match.group);
             const userRef = doc(db, "users", voteData.userId);
             const updates = {
               correctPredictions: increment(wasCorrect ? -1 : 0),
               totalPredictions: increment(-1),
             };
-            if (isPhase3) {
+            if (isPhase5) {
+              updates.correctPredictionsPhase5 = increment(wasCorrect ? -1 : 0);
+              updates.totalPredictionsPhase5 = increment(-1);
+            } else if (isPhase4) {
+              updates.correctPredictionsPhase4 = increment(wasCorrect ? -1 : 0);
+              updates.totalPredictionsPhase4 = increment(-1);
+            } else if (isPhase3) {
               updates.correctPredictionsPhase3 = increment(wasCorrect ? -1 : 0);
               updates.totalPredictionsPhase3 = increment(-1);
             } else if (isPhase2) {
