@@ -76,8 +76,10 @@ export default function Leaderboard() {
       // 1. Get all matches
       const matchesSnapshot = await getDocs(collection(db, "matches"));
       const finishedMatches = {}; // matchId -> { result, kickoff, group }
+      const dbMatches = {}; // matchId -> match data
       matchesSnapshot.docs.forEach((doc) => {
         const data = doc.data();
+        dbMatches[doc.id] = { id: doc.id, ...data };
         if (data.status === "finished" && data.result) {
           const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
           finishedMatches[doc.id] = { result: data.result, kickoff, group: data.group };
@@ -257,6 +259,28 @@ export default function Leaderboard() {
         }
       }
 
+      // Tự động kiểm tra và sửa lỗi đồng bộ đội thắng Bán kết vào Chung kết / Tranh hạng ba
+      const checkAndRepairSF = (sfId, teamProp) => {
+        const sf = dbMatches[sfId];
+        if (sf && sf.status === "finished" && sf.result) {
+          const isTeamAWon = sf.result === "teamA";
+          const winner = isTeamAWon ? sf.teamA : sf.teamB;
+          const loser = isTeamAWon ? sf.teamB : sf.teamA;
+          
+          const finalMatch = dbMatches["FINAL"];
+          const thirdPlaceMatch = dbMatches["3RD_PLACE"];
+          
+          if (finalMatch && (!finalMatch[teamProp] || finalMatch[teamProp].name !== winner.name)) {
+            batch.update(doc(db, "matches", "FINAL"), { [teamProp]: winner });
+          }
+          if (thirdPlaceMatch && (!thirdPlaceMatch[teamProp] || thirdPlaceMatch[teamProp].name !== loser.name)) {
+            batch.update(doc(db, "matches", "3RD_PLACE"), { [teamProp]: loser });
+          }
+        }
+      };
+      checkAndRepairSF("SF_1", "teamA");
+      checkAndRepairSF("SF_2", "teamB");
+
       await batch.commit();
       alert("Cập nhật lại bảng xếp hạng thành công!");
     } catch (err) {
@@ -308,8 +332,10 @@ export default function Leaderboard() {
         try {
           const matchesSnapshot = await getDocs(collection(db, "matches"));
           const finishedMatches = {}; // matchId -> { result, kickoff, group }
+          const dbMatches = {}; // matchId -> match data
           matchesSnapshot.docs.forEach((doc) => {
             const data = doc.data();
+            dbMatches[doc.id] = { id: doc.id, ...data };
             if (data.status === "finished" && data.result) {
               const kickoff = data.matchDate?.toDate ? data.matchDate.toDate() : new Date(data.matchDate);
               finishedMatches[doc.id] = { result: data.result, kickoff, group: data.group };
@@ -462,6 +488,30 @@ export default function Leaderboard() {
               needsUpdate = true;
             }
           }
+
+          // Tự động kiểm tra và sửa lỗi đồng bộ đội thắng Bán kết vào Chung kết / Tranh hạng ba
+          const checkAndRepairSF = (sfId, teamProp) => {
+            const sf = dbMatches[sfId];
+            if (sf && sf.status === "finished" && sf.result) {
+              const isTeamAWon = sf.result === "teamA";
+              const winner = isTeamAWon ? sf.teamA : sf.teamB;
+              const loser = isTeamAWon ? sf.teamB : sf.teamA;
+              
+              const finalMatch = dbMatches["FINAL"];
+              const thirdPlaceMatch = dbMatches["3RD_PLACE"];
+              
+              if (finalMatch && (!finalMatch[teamProp] || finalMatch[teamProp].name !== winner.name)) {
+                batch.update(doc(db, "matches", "FINAL"), { [teamProp]: winner });
+                needsUpdate = true;
+              }
+              if (thirdPlaceMatch && (!thirdPlaceMatch[teamProp] || thirdPlaceMatch[teamProp].name !== loser.name)) {
+                batch.update(doc(db, "matches", "3RD_PLACE"), { [teamProp]: loser });
+                needsUpdate = true;
+              }
+            }
+          };
+          checkAndRepairSF("SF_1", "teamA");
+          checkAndRepairSF("SF_2", "teamB");
 
           if (needsUpdate) {
             await batch.commit();

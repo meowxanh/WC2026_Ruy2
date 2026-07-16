@@ -121,6 +121,41 @@ export function useMatches() {
 
             setMatches(data);
             setUsingLocal(false);
+
+            // Tự động kiểm tra và sửa lỗi đồng bộ đội thắng Bán kết vào Chung kết / Tranh hạng ba
+            const sf1 = data.find((m) => m.id === "SF_1");
+            const sf2 = data.find((m) => m.id === "SF_2");
+            const finalMatch = data.find((m) => m.id === "FINAL");
+            const thirdPlaceMatch = data.find((m) => m.id === "3RD_PLACE");
+            let repairBatch = null;
+
+            const checkAndRepair = (sf, teamProp) => {
+              if (sf && sf.status === "finished" && sf.result) {
+                const isTeamAWon = sf.result === "teamA";
+                const winner = isTeamAWon ? sf.teamA : sf.teamB;
+                const loser = isTeamAWon ? sf.teamB : sf.teamA;
+
+                if (finalMatch && (!finalMatch[teamProp] || finalMatch[teamProp].name !== winner.name)) {
+                  if (!repairBatch) repairBatch = writeBatch(db);
+                  repairBatch.update(doc(db, "matches", "FINAL"), { [teamProp]: winner });
+                }
+                if (thirdPlaceMatch && (!thirdPlaceMatch[teamProp] || thirdPlaceMatch[teamProp].name !== loser.name)) {
+                  if (!repairBatch) repairBatch = writeBatch(db);
+                  repairBatch.update(doc(db, "matches", "3RD_PLACE"), { [teamProp]: loser });
+                }
+              }
+            };
+
+            checkAndRepair(sf1, "teamA");
+            checkAndRepair(sf2, "teamB");
+
+            if (repairBatch) {
+              repairBatch.commit().then(() => {
+                console.log("Self-healed knockout team propagation in Firestore!");
+              }).catch((err) => {
+                console.error("Error healing knockout teams:", err);
+              });
+            }
           }
           setLoading(false);
         },
